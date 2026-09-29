@@ -19,7 +19,7 @@ Paths refer to [`ARCHITECTURE.md`](ARCHITECTURE.md). Test strategy is in [`TESTI
 - MUST: deps: `zod`; dev: `typescript`, `vitest`, `tsx`, `eslint`, `typescript-eslint`, `@types/node`. (`@anthropic-ai/sdk` is added in F3, not before.)
 - MUST: npm scripts: `typecheck`, `lint`, `test`, `test:e2e`, `eval` (stub), `chat` (stub), `trace` (stub), `verify`.
 - MUST: `scripts/verify.sh` runs typecheck → lint → test → eval → e2e and stops on first failure.
-- MUST: `.gitignore` (`node_modules`, `dist`, `traces/`, `.env`), `.env.example`.
+- MUST: one root `.gitignore` (`node_modules/`, `dist/`, `traces/`, `evals/results/`, `.env`, `.env.*` except `!.env.example`, `*.log`) and a committed `.env.example` listing `ANTHROPIC_API_KEY=` with a placeholder. Verify with `git check-ignore -v .env traces/x.jsonl` (ignored) and `git check-ignore .env.example` (not ignored).
 - MUST: one placeholder test proving vitest runs.
 
 **Acceptance**

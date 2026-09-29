@@ -3,4 +3,6 @@ dist/
 traces/
 evals/results/
 .env
+.env.*
+!.env.example
 *.log

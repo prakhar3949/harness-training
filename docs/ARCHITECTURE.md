@@ -8,6 +8,10 @@ harness-training/
 ├── CLAUDE.md
 ├── PROGRESS.md                # Append-only log, one entry per finished feature
 ├── README.md
+├── .gitignore                 # The ONLY .gitignore (repo root). Ignores node_modules/, dist/,
+│                              #   traces/, evals/results/, .env, .env.* (except .env.example), *.log
+├── .env.example               # Committed. Every env var with a placeholder value (F0; Slack vars added in F14)
+├── .env                       # NOT committed (gitignored). Your real secrets: ANTHROPIC_API_KEY, SLACK_* tokens
 ├── package.json / tsconfig.json / vitest.config.ts / eslint.config.js   (created in F0)
 ├── .claude/skills/
 │   ├── build-feature/SKILL.md # The "finish one feature" workflow
@@ -71,7 +75,8 @@ harness-training/
 │   ├── cases/*.json           #   {id, customerMessage, seed, scriptedModel?, expect}
 │   ├── graders.ts             #   Deterministic graders (state-based, not string-matching)
 │   ├── run.ts                 #   `npm run eval` – runs all cases, prints table, exits non-zero on regress
-│   └── baseline.json          #   Last accepted scores (regressions fail CI)
+│   ├── baseline.json          #   Last accepted scores (regressions fail CI); committed
+│   └── results/               #   Per-run eval output; gitignored by the root .gitignore
 ├── tests/
 │   ├── unit/                  # Mirrors src/ one-to-one
 │   ├── integration/           # Loop + tools + guardrails + tracer with ScriptedModel
@@ -80,8 +85,11 @@ harness-training/
 ├── scripts/
 │   ├── check-principles.ts    # Mechanical enforcement of GOLDEN_PRINCIPLES (F9)
 │   └── verify.sh              # One command: typecheck + lint + test + eval + smoke
-└── traces/                    # gitignored; *.jsonl written by the tracer
+└── traces/                    # *.jsonl written by the tracer; the whole folder is gitignored by the
+                               #   root .gitignore (no .gitignore inside it). Created at runtime.
 ```
+
+Create `.env` by copying the template: `cp .env.example .env`, then fill in real values. Code reads env vars only through one zod-validated config parser (GP-06), never `process.env` scattered around.
 
 ## Dependency rules (enforced by `check-principles.ts`)
 
