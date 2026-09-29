@@ -53,9 +53,20 @@ harness-training/
 │   │   ├── types.ts           #   TraceEvent union (model_call, tool_call, guardrail, stop …)
 │   │   ├── tracer.ts          #   Tracer interface + JsonlTracer + MemoryTracer
 │   │   └── summarize.ts       #   Read a trace, print a human-readable timeline + cost/steps
-│   └── cli/
-│       ├── main.ts            #   `npm run chat` – interactive REPL; `--scripted` for offline demo
-│       └── scenarios.ts       #   Named ScriptedModel scenarios for offline demos
+│   ├── cli/
+│   │   ├── main.ts            #   `npm run chat` – interactive REPL; `--scripted` for offline demo
+│   │   └── scenarios.ts       #   Named ScriptedModel scenarios for offline demos
+│   ├── chat/                  # WEEK 2 (F13, F15): platform-neutral chat front door
+│   │   ├── types.ts           #   ChatTransport, IncomingMessage, ActionEvent, OutgoingMessage
+│   │   ├── fakeSlack.ts       #   In-memory channel/threads for tests and offline demos
+│   │   ├── session.ts         #   ThreadSessions: threadRef → {customerId, messages}
+│   │   ├── bot.ts             #   startRefundBot(): mentions → runAgent, per-thread queue
+│   │   ├── approval.ts        #   ChatApprover: ApprovalHandler via buttons, allowlist, timeout
+│   │   └── auditor.ts         #   Auditor agent config + structured handoff (F15)
+│   └── slack/                 # WEEK 2 (F14): the only code that knows Slack exists
+│       ├── boltTransport.ts   #   BoltTransport implements ChatTransport (only @slack/bolt importer)
+│       ├── blocks.ts          #   Pure OutgoingMessage ⇄ Block Kit / event mappers
+│       └── main.ts            #   `npm run slack` entry: zod config, wiring
 ├── evals/                     # LAYER 5
 │   ├── cases/*.json           #   {id, customerMessage, seed, scriptedModel?, expect}
 │   ├── graders.ts             #   Deterministic graders (state-based, not string-matching)
@@ -65,6 +76,7 @@ harness-training/
 │   ├── unit/                  # Mirrors src/ one-to-one
 │   ├── integration/           # Loop + tools + guardrails + tracer with ScriptedModel
 │   └── e2e/                   # Spawns the real CLI as a child process (the "human tester")
+├── slack/manifest.yaml        # Slack app manifest (F14)
 ├── scripts/
 │   ├── check-principles.ts    # Mechanical enforcement of GOLDEN_PRINCIPLES (F9)
 │   └── verify.sh              # One command: typecheck + lint + test + eval + smoke
@@ -80,7 +92,11 @@ cli ──► agent ──► tools ──► domain
           │  ╲──► telemetry
           └────► llm (interface only)
 
+slack ──► chat ──► agent, guardrails (ApprovalHandler), telemetry
+
 llm/anthropic.ts  ← only file allowed to import "@anthropic-ai/sdk"
+slack/boltTransport.ts ← only file allowed to import "@slack/bolt"
+chat/             ← never imports slack/ (it talks to ChatTransport only)
 domain/           ← imports nothing from the rest of src/
 tools/            ← never imports agent/, llm/, cli/
 telemetry/        ← imports nothing from the rest of src/ (except its own types)
@@ -111,6 +127,22 @@ CLI ── user text ──► runAgent(config, messages)
               └── append tool_result messages ◄──┘
                    (step++ ; step > maxSteps → stop("max_steps"))
 ```
+
+## Slack flow (Week 2)
+
+```
+Slack ─(Socket Mode)─► BoltTransport ──► bot.ts ──► ThreadSessions.get(thread)
+                                            │
+                                            ▼
+                                  runAgent(… approval: ChatApprover(thread, rep))
+                                            │ needs_approval
+                                            ▼
+                     ChatApprover posts [Approve][Deny] ──► Auditor agent posts recommendation
+                                            │
+             human click ─► BoltTransport ─► onAction ─► allowlist + not-requester check ─► resolve
+```
+
+The CLI and Slack are two front doors to the same core. `FakeSlack` implements the same `ChatTransport`, so the whole flow runs offline in tests.
 
 ## Key types (write these first; everything hangs off them)
 

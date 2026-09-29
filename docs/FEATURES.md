@@ -250,6 +250,123 @@ Paths refer to [`ARCHITECTURE.md`](ARCHITECTURE.md). Test strategy is in [`TESTI
 
 ---
 
+# Week 2: Slack channel
+
+Picture a shared channel, `#refund-desk`. Support reps (humans) and two bots are in it:
+
+- **Refund Desk agent** (`@refund-desk`) is the F4 agent. It handles requests.
+- **Auditor agent** (`@auditor`, F15) is a second agent that reviews risky actions.
+- **Approvers** are humans on an allowlist. They click Approve or Deny.
+
+Each Slack **thread is one conversation** (one `messages[]` history). The flow:
+
+```
+rep:          @refund-desk customer:C1 refund order 1004, it arrived broken
+refund-desk:  → lookup_order, → check_refund_policy          (tool activity, in the thread)
+refund-desk:  Refund of $249.00 needs approval.  [Approve] [Deny]    (@approvers pinged)
+auditor:      Recommendation: APPROVE. Delivered 3 days ago, first refund, amount = order total.
+approver:     clicks [Approve]
+refund-desk:  ✅ Refunded $249.00 on order 1004 (approved by @dana).
+```
+
+Key idea: **Slack is just another front door**, like the CLI. The agent loop, tools and guardrails don't know Slack exists. Slack plugs in through two small interfaces: a *transport* (messages in and out) and the existing `ApprovalHandler` from F7.
+
+---
+
+## F13 – Chat transport + FakeSlack
+**Layer:** integration (with 4: approvals). **Why:** you learn to keep a third-party platform at the edge, and get a fully offline test double for it before touching the real API.
+
+**Requirements**
+- MUST: `src/chat/types.ts`:
+  - `ChatTransport { post(threadRef, msg: OutgoingMessage): Promise<MessageRef>; update(ref, msg): Promise<void>; onMessage(handler); onAction(handler) }`.
+  - `IncomingMessage { threadRef, userId, text, mentions[] }`, `ActionEvent { messageRef, actionId, userId }`.
+  - `OutgoingMessage` = text plus optional buttons (`{ actionId, label, style? }[]`). This is our own tiny subset. **No Slack types outside `src/slack/`.**
+- MUST: `src/chat/fakeSlack.ts` `FakeSlack implements ChatTransport`: in-memory channel with threads; test helpers `userSays(userId, text, threadRef?)`, `click(messageRef, actionId, userId)`, `thread(threadRef)` (returns the posted messages in order).
+- MUST: `src/chat/session.ts` `ThreadSessions`: map `threadRef → { customerId, messages[] }`. The first message in a thread must contain `customer:<id>`; if it's missing, reply with usage help and don't run the agent. Later messages reuse the stored customer id and history.
+- MUST: `src/chat/bot.ts` `startRefundBot({ transport, agentDeps, approvers, approvalTimeoutMs })`:
+  - react only to messages that mention the bot; ignore the bot's own messages (no loops).
+  - one agent run at a time per thread (a queue per thread). A second message while running gets a "working on it" reply.
+  - post tool activity as one message that is edited as calls progress (`update`), not one message per call.
+  - post the final answer, or a readable stop reason if the run failed.
+- MUST: `src/chat/approval.ts` `ChatApprover implements ApprovalHandler` (the F7 interface). Create one per agent run, bound to the thread and the requesting rep, so the F7 interface stays unchanged:
+  - posts the request in the thread with **Approve** / **Deny** buttons and the reason, and mentions the approvers.
+  - resolves only on a click by a user on the `approvers` allowlist. Others get an ephemeral-style "not allowed" reply and the request stays pending.
+  - **the requester can't approve their own request** (separation of duties).
+  - first valid click wins; later clicks are ignored (idempotent). The message is edited to show who decided and the buttons are removed.
+  - times out after `approvalTimeoutMs` → treated as **deny**, and says so in the thread.
+  - emits `guardrail` trace events: `approval_requested`, `approval_granted|denied|timed_out` with the Slack user id.
+- MUST: the clock and timers are injectable so timeout tests don't sleep.
+- MUST: nothing in `agent/`, `tools/`, `guardrails/`, `domain/` is changed except to fix a real bug (if so, it gets its own commit).
+
+**Acceptance (integration tests with FakeSlack + ScriptedModel)**
+1. A rep mention with `customer:C1` on a small order gets a final confirmation in the same thread; the store has one refund.
+2. A mention without `customer:` gets usage help; the model is never called (`model.requests.length === 0`).
+3. A $249 refund posts approval buttons; an allowlisted approver clicks Approve; the refund is recorded and the thread shows who approved.
+4. The same flow with Deny: no refund, and the agent tells the rep a human declined.
+5. A non-approver clicks Approve: stays pending, no refund. The requester (even if on the allowlist) clicking Approve: rejected.
+6. Double click / two approvers clicking: exactly one decision, one refund.
+7. No click before the timeout: deny, and a timeout message appears (fake timers).
+8. Two threads at once keep separate histories and customers.
+9. A bot message that mentions the bot doesn't trigger a run.
+10. A message in thread A during a running agent in thread A gets "working on it"; the run is not duplicated.
+
+**Out of scope:** real Slack, persistence of pending approvals, DMs, slash commands.
+
+---
+
+## F14 – Real Slack adapter
+**Layer:** integration. **Why:** connect to a real platform safely: auth, event delivery, retries, rate limits.
+
+**Setup the learner does once (document it in `docs/SLACK_SETUP.md`)**
+- Create a Slack app in a **test workspace** from an app manifest checked in at `slack/manifest.yaml` (bot scopes: `app_mentions:read`, `chat:write`, `channels:history`; Socket Mode on; interactivity on).
+- Tokens go in `.env` (never committed): `SLACK_BOT_TOKEN` (`xoxb-…`), `SLACK_APP_TOKEN` (`xapp-…`), `SLACK_CHANNEL_ID`, `SLACK_APPROVER_IDS` (comma-separated user ids).
+- Socket Mode means no public URL or ngrok is needed.
+
+**Requirements**
+- MUST: dependency `@slack/bolt`. **Only** `src/slack/boltTransport.ts` imports it (the same rule as `llm/anthropic.ts`, GP-01).
+- MUST: `BoltTransport implements ChatTransport`: maps `app_mention` → `IncomingMessage`, button `block_actions` → `ActionEvent`, `OutgoingMessage` → Block Kit (section + actions block). It calls `ack()` right away for actions (Slack requires a reply within 3 s) and does the work after.
+- MUST: only handles events from `SLACK_CHANNEL_ID`; everything else is ignored.
+- MUST: deduplicate events Slack retries (keep the last N event ids).
+- MUST: on a `chat.postMessage` rate-limit error, retry once after `retry-after`; after that, log to the trace and give up (no crash).
+- MUST: `npm run slack` starts the bot. Config is parsed with zod at startup; if anything is missing, fail fast with exit 2 and a list of missing variables.
+- MUST: redaction (F5) extended to `xoxb-`/`xapp-` tokens; `.env.example` lists the Slack variables with placeholder values.
+- MUST: customer data in the channel is limited: order id, amount, status. Never addresses or emails (GP-12).
+- SHOULD: mapping functions (event → IncomingMessage, OutgoingMessage → blocks) are pure and unit-tested with recorded Slack payload fixtures in `tests/fixtures/slack/`.
+
+**Acceptance**
+- Unit: mapping fixtures (mention, button click, retried event) in both directions; snapshot of the Block Kit JSON for an approval message.
+- Unit: config validation with missing and bad tokens.
+- The F13 integration suite runs unchanged against FakeSlack (the adapter is a thin shell).
+- Manual (in the human-tester pass, needs a test workspace): run the full story from the Week 2 intro; also try approving from a non-allowlisted account and approving your own request; stop the bot mid-approval and restart (expect: the pending approval is lost and the thread says nothing; record this limitation in PROGRESS.md "Open issues").
+
+**Out of scope:** HTTP mode/public endpoints, OAuth multi-workspace install, persistence (a menu item after Week 2).
+
+---
+
+## F15 – Auditor agent in the same channel
+**Layer:** 2 (multi-agent handoff). **Why:** a first multi-agent pattern where two agents and humans share one conversation, and you see that "another agent" is just another loop with different tools and a different prompt.
+
+**Requirements**
+- MUST: the Auditor is a second `runAgent` configuration: own system prompt, **read-only tools only** (`lookup_order`, `check_refund_policy`, and `list_customer_orders` if F8 was built), small `maxSteps` (4). It can't call `issue_refund` (enforce by giving it a registry without write tools, and test it).
+- MUST: when `ChatApprover` posts an approval request, it triggers the Auditor with a handoff message: `{orderId, requestedCents, reason, customerId}` as structured JSON (not free text from the first agent).
+- MUST: the Auditor replies in the thread under its own name with `Recommendation: APPROVE | DENY | UNSURE` plus a reason ≤ 3 sentences. The recommendation is parsed with zod; if it's malformed after 1 repair try, post `UNSURE`.
+- MUST: **the Auditor never decides.** Only a human click resolves the approval. The recommendation is advice (GP-09).
+- MUST: the Auditor has no access to thread history (the rep's text could contain a prompt injection). It sees only the structured handoff.
+- MUST: both agents' runs share one trace with a `agent: "refund-desk" | "auditor"` field and the same `threadRef`.
+- MUST: if the Auditor fails or times out, the approval still works, with a note "Auditor unavailable".
+- SHOULD: add 3 eval cases (F9 format extended with `approval` + `auditorExpect`): clear approve, clear deny (over 30 days), and injection text in the rep's message that the Auditor must not see.
+
+**Acceptance**
+1. Over-threshold refund in FakeSlack: thread order is request → Auditor recommendation → human click → result.
+2. Auditor registry has no write tools; a scripted Auditor that tries `issue_refund` gets an "unknown tool" error and no refund happens.
+3. Malformed Auditor output → one repair → `UNSURE`.
+4. Auditor model error → "Auditor unavailable" note; the human can still approve.
+5. Trace: events from both agents, correctly tagged, in one file.
+
+**Out of scope:** agents talking freely to each other, a planner agent, auto-approval by the Auditor.
+
+---
+
 ## Definition of Done (every feature)
 
 1. All acceptance criteria have automated tests, and they pass.

@@ -35,6 +35,10 @@ _(leftovers from time-boxed cleanup passes)_
 
 ## Entries
 
+### 2026-09-29: Planning docs: Week 2 Slack channel
+**Summary:** Added F13–F15. The agent joins a shared Slack channel where reps talk to it in threads, a read-only Auditor agent reviews refunds that need approval, and approvers decide with Approve/Deny buttons. Built behind a `ChatTransport` interface with an in-memory `FakeSlack`, so it stays testable offline.
+**Next:** unchanged (F0).
+
 ### 2026-09-29: Planning docs
 **Summary:** Set up the learning plan: Refund Desk Agent use case, architecture, 7-day roadmap, feature specs F0–F12, testing strategy, golden principles, cleanup process, agent manual and skills. No code yet.
 **Next:** F0 project scaffold.

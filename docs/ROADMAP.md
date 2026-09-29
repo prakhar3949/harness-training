@@ -54,7 +54,17 @@ Goal: make the repo stay clean without you.
 
 ---
 
-## After the week (menu, pick one)
+## Week 2 – Days 8–10: Slack channel (humans and agents in one room)
+Goal: the same agent core now lives in a shared Slack channel. Support reps talk to the agents in threads, and refund approvals happen with Approve/Deny buttons in the thread. Nothing in `agent/`, `tools/`, `guardrails/` changes. Only a new front door is added, next to the CLI.
+- [ ] **F13** Chat transport abstraction + in-memory `FakeSlack` (offline, fully testable)
+- [ ] **F14** Real Slack adapter (Bolt, Socket Mode), thread conversations, button approvals
+- [ ] **F15** Second agent in the channel: an "Auditor" agent that reviews each approval request before the human decides
+
+✅ End of Day 10: in a test Slack workspace, a rep writes `@refund-desk customer:C1 refund order 1004`, the Auditor posts a recommendation, an approver clicks **Approve**, and the refund shows in the store and the trace. The same flow passes offline in `npm run verify` through `FakeSlack`.
+
+---
+
+## After Week 2 (menu, pick one)
 - Add a second specialist sub-agent (e.g. "fraud check") and a planner that hands off to it.
 - Swap `ScriptedModel` evals for LLM-as-judge on the free-text reply quality.
 - Add durable sessions (save/resume conversations to disk) – compare with `pi-durable`.
@@ -62,3 +72,4 @@ Goal: make the repo stay clean without you.
 
 ## Cutting scope if you fall behind
 Drop in this order: F10 → F8 compaction (keep truncation) → F12 → F6 interactive REPL (keep `--scripted`). Never drop F5, F7, F9.
+In Week 2, F15 is the one to drop. F14 needs a Slack workspace where you can install an app; without one, stop after F13 (the fake covers the whole flow).

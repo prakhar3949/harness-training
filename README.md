@@ -19,11 +19,13 @@ It runs against a **fake in-memory database** (no real money, no real network ne
 | 5. Evals | 15–20 scripted customer scenarios with pass/fail graders |
 | 6. Observability | JSONL trace of every model call, tool call, guardrail decision |
 
+**Week 2 (F13–F15):** the agent joins a shared Slack channel. Reps talk to it in threads, a second "Auditor" agent reviews risky refunds, and a human approves or denies with buttons in the thread.
+
 ## Read in this order
 
-1. [`docs/ROADMAP.md`](docs/ROADMAP.md) – the 7-day plan.
+1. [`docs/ROADMAP.md`](docs/ROADMAP.md) – the 7-day plan plus the Week 2 Slack extension.
 2. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) – file layout and how the pieces connect.
-3. [`docs/FEATURES.md`](docs/FEATURES.md) – one feature spec at a time (F0…F9). Work top to bottom.
+3. [`docs/FEATURES.md`](docs/FEATURES.md) – one feature spec at a time (F0…F15). Work top to bottom.
 4. [`docs/TESTING.md`](docs/TESTING.md) – how everything is verified (what a human tester would do, automated).
 5. [`docs/GOLDEN_PRINCIPLES.md`](docs/GOLDEN_PRINCIPLES.md) – the rules that keep the code clean.
 6. [`docs/CLEANUP.md`](docs/CLEANUP.md) – the recurring cleanup ritual.
@@ -38,4 +40,4 @@ Tell it **"Run cleanup."** to trigger the `cleanup` skill (weekly, or after ever
 
 ## Stack
 
-Node 22, TypeScript (strict), `vitest`, `zod`, `tsx`. The Anthropic SDK is used in exactly one file (`src/llm/anthropic.ts`). No agent frameworks – that's the point.
+Node 22, TypeScript (strict), `vitest`, `zod`, `tsx`. The Anthropic SDK is used in exactly one file (`src/llm/anthropic.ts`), and `@slack/bolt` in exactly one file (`src/slack/boltTransport.ts`, Week 2). No agent frameworks – that's the point.
