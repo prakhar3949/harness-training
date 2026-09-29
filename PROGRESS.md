@@ -9,8 +9,6 @@ Append-only: the newest entry goes at the **top** of "Entries". The coding agent
 
 ## Open issues
 _(bugs found but not yet fixed, spec questions for the user)_
-- `.env.example` has `ANTHROPIC_API_key =`; F0 spec says `ANTHROPIC_API_KEY=`. Fix the casing before F3 reads the key.
-
 ## Cleanup backlog
 _(leftovers from time-boxed cleanup passes)_
 
@@ -41,7 +39,7 @@ _(leftovers from time-boxed cleanup passes)_
 **Files:** `package.json`, `tsconfig.json`, `eslint.config.js`, `vitest.config.ts`, `vitest.e2e.config.ts`, `scripts/verify.sh`, `src/index.ts`, `tests/smoke.test.ts`, `tests/e2e/smoke.e2e.test.ts`, `.env.example`.
 **Concepts learned:** a single `verify` gate gives fast, trustworthy feedback; `eval`/`chat`/`trace` are stubs so later features plug into existing scripts.
 **Tests:** 1 unit, 1 e2e, eval stub; `npm run verify` exits 0. `git check-ignore` confirms `.env` and `traces/` are ignored and `.env.example` is not.
-**Decisions / deviations from spec:** `.env.example` key casing differs from spec (see Open issues).
+**Decisions / deviations from spec:** none (`.env.example` key casing fixed after review).
 **Next:** F1 fake domain (orders, store, refund policy).
 
 ### 2026-09-29: Planning docs: Week 2 Slack channel
