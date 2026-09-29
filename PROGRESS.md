@@ -3,12 +3,13 @@
 Append-only: the newest entry goes at the **top** of "Entries". The coding agent writes one entry per finished feature and one per cleanup pass.
 
 ## Status
-- Current feature: **F0** (not started)
+- Current feature: **F1** (not started)
 - Last cleanup: none
 - Eval pass rate: n/a
 
 ## Open issues
 _(bugs found but not yet fixed, spec questions for the user)_
+- `.env.example` has `ANTHROPIC_API_key =`; F0 spec says `ANTHROPIC_API_KEY=`. Fix the casing before F3 reads the key.
 
 ## Cleanup backlog
 _(leftovers from time-boxed cleanup passes)_
@@ -34,6 +35,14 @@ _(leftovers from time-boxed cleanup passes)_
 ---
 
 ## Entries
+
+### 2026-09-29: F0 Project scaffold  (f4e6aa8)
+**Summary:** TypeScript ESM project with strict typechecking, ESLint, and vitest unit + e2e configs. `npm run verify` runs typecheck → lint → test → eval → e2e and stops on the first failure.
+**Files:** `package.json`, `tsconfig.json`, `eslint.config.js`, `vitest.config.ts`, `vitest.e2e.config.ts`, `scripts/verify.sh`, `src/index.ts`, `tests/smoke.test.ts`, `tests/e2e/smoke.e2e.test.ts`, `.env.example`.
+**Concepts learned:** a single `verify` gate gives fast, trustworthy feedback; `eval`/`chat`/`trace` are stubs so later features plug into existing scripts.
+**Tests:** 1 unit, 1 e2e, eval stub; `npm run verify` exits 0. `git check-ignore` confirms `.env` and `traces/` are ignored and `.env.example` is not.
+**Decisions / deviations from spec:** `.env.example` key casing differs from spec (see Open issues).
+**Next:** F1 fake domain (orders, store, refund policy).
 
 ### 2026-09-29: Planning docs: Week 2 Slack channel
 **Summary:** Added F13–F15. The agent joins a shared Slack channel where reps talk to it in threads, a read-only Auditor agent reviews refunds that need approval, and approvers decide with Approve/Deny buttons. Built behind a `ChatTransport` interface with an in-memory `FakeSlack`, so it stays testable offline.
