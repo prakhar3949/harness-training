@@ -3,7 +3,7 @@
 Append-only: the newest entry goes at the **top** of "Entries". The coding agent writes one entry per finished feature and one per cleanup pass.
 
 ## Status
-- Current feature: **F1** (not started)
+- Current feature: **F1** (in progress: domain code done, acceptance tests pending)
 - Last cleanup: none
 - Eval pass rate: n/a
 

@@ -7,7 +7,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done. The building agent
 ## Day 1 – Foundations + Tools (Layer 1)
 Goal: a typed, tested set of tools you can call by hand. No LLM yet.
 - [x] **F0** Project scaffold, tooling, `verify.sh`
-- [ ] **F1** Fake domain (orders, store, refund policy)
+- [~] **F1** Fake domain (orders, store, refund policy)
 - [ ] **F2** Tool layer: schema-validated tools + registry
 
 ✅ End of day: `npm run verify` is green; you can call every tool from a unit test.
