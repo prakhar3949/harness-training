@@ -3,7 +3,7 @@
 Append-only: the newest entry goes at the **top** of "Entries". The coding agent writes one entry per finished feature and one per cleanup pass.
 
 ## Status
-- Current feature: **F1** (in progress: domain code done, acceptance tests pending)
+- Current feature: **F2** (not started)
 - Last cleanup: none
 - Eval pass rate: n/a
 
@@ -33,6 +33,19 @@ _(leftovers from time-boxed cleanup passes)_
 ---
 
 ## Entries
+
+### 2026-10-01: F1 Fake domain  (see commit)
+**Summary:** The "company system" the agent will act on: typed orders with integer cents, an `InMemoryOrderStore` that guards data invariants and throws `DomainError`, 9 seed orders covering every spec case, and a pure `evaluateRefund(order, cents, now)` with the clock injected.
+**Files:** `src/domain/{types,store,policy}.ts` (prior commit d5cc99b); added `tests/unit/domain/{policy,store}.test.ts`; `vitest.config.ts` now runs `tests/unit` + `tests/integration` (it was pointing at e2e); removed placeholder `tests/smoke.test.ts`.
+**Concepts learned:** pure functions + injected clock make policy deterministic to test; table-driven tests (`it.each`) put one case per row; boundary tests (day 30 vs 31, last minute of day 30) catch `>` vs `>=` bugs; `structuredClone` deep copies keep stores from sharing state by reference; data invariants (store) vs time-based policy (`evaluateRefund`) live in separate places.
+**Tests:** 37 unit (policy 19, store 18), 1 e2e, eval stub; `npm run verify` exits 0.
+**Human-tester pass:**
+- Ran a tsx probe against a fresh seeded store: `ord_small` 2499c → eligible; `ord_day31` → `OUTSIDE_WINDOW`, max 0; refund 1000c on `ord_small` → `ref_1`.
+- Bad input: 1500c after that refund → `OVER_REFUND`; 0.5c → `INVALID_AMOUNT`; unknown id → `ORDER_NOT_FOUND`; shipped order → `ORDER_NOT_DELIVERED`. All are `DomainError`s, nothing else thrown.
+- `src/domain` has no `TODO`, no `any`, and no `Date.now()` calls.
+- Bugs found: none.
+**Decisions / deviations from spec:** seed has 9 orders (day-30 and day-31 boundaries split into two). `evaluateRefund` ignores ownership on purpose; that is the F7 `ownerMatches` guardrail. The store also refuses non-delivered orders (`ORDER_NOT_DELIVERED`) as a data invariant.
+**Next:** F2 tool layer (schemas + registry). Risk: zod → JSON Schema conversion for `toModelSchemas()`.
 
 ### 2026-09-29: F0 Project scaffold  (f4e6aa8)
 **Summary:** TypeScript ESM project with strict typechecking, ESLint, and vitest unit + e2e configs. `npm run verify` runs typecheck → lint → test → eval → e2e and stops on the first failure.
