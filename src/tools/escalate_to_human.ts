@@ -18,7 +18,6 @@ export const escalateToHuman: Tool<EscalateInput, EscalateOutput> = {
     inputSchema: escalateInput,
     risk: "write",
     async execute(input, ctx) {
-        // record the ticket (see note below), then:
         const ticket = ctx.store.createTicket(
             ctx.customerId,
             input.summary,

@@ -4,7 +4,6 @@ import { evaluateRefund } from "../domain/policy.js";
 import { DomainError, type Refund } from "../domain/types.js";
 import { getOwnedOrder } from "./order_access.js";
 
-// issue_refund: a write tool, so it's stricter
 const issueRefundInput = z.object({
   orderId: z.string().min(1, "Order ID is required").describe("The order ID, e.g. 'ord_small'"),
   refundCents: z
