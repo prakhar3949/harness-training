@@ -3,7 +3,7 @@ import type { Tool } from "./types.ts";
 import { evaluateRefund, type RefundEvaluation } from "../domain/policy.js";
 import {getOwnedOrder} from "./order_access.js";
 
-export const checkRefundPolicyInput = z.object({
+const checkRefundPolicyInput = z.object({
     orderId: z
     .string()
     .min(1, "Order ID is required")
@@ -16,9 +16,9 @@ export const checkRefundPolicyInput = z.object({
     .describe("Refund amount in cents. Omit to check a full refund of the remaining balance."),
 });
 
-export type CheckRefundPolicyInput = z.infer<typeof checkRefundPolicyInput>;
+type CheckRefundPolicyInput = z.infer<typeof checkRefundPolicyInput>;
 
-export type CheckRefundPolicyOutput = RefundEvaluation;
+type CheckRefundPolicyOutput = RefundEvaluation;
 
 export const checkRefundPolicy: Tool<CheckRefundPolicyInput, CheckRefundPolicyOutput> = {
     name: "check_refund_policy",

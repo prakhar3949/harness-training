@@ -5,7 +5,7 @@ import { DomainError, type Refund } from "../domain/types.js";
 import { getOwnedOrder } from "./order_access.js";
 
 // issue_refund: a write tool, so it's stricter
-export const issueRefundInput = z.object({
+const issueRefundInput = z.object({
   orderId: z.string().min(1, "Order ID is required").describe("The order ID, e.g. 'ord_small'"),
   refundCents: z
     .number().int()
@@ -17,7 +17,7 @@ export const issueRefundInput = z.object({
     .describe("Short reason for the refund, shown in the audit trail"),
 });
 
-export type IssueRefundInput = z.infer<typeof issueRefundInput>;
+type IssueRefundInput = z.infer<typeof issueRefundInput>;
 
 export const issueRefund: Tool<IssueRefundInput, Refund> = {
     name: "issue_refund",

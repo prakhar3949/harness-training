@@ -1,14 +1,14 @@
 import {z} from "zod";
 import type { Tool } from "./types.ts";
 
-export const escalateInput = z.object({
+const escalateInput = z.object({
   summary: z.string().min(10).describe("What the customer needs, in one or two sentences"),
   urgency: z.enum(["low", "normal", "high"]).default("normal"),
 });
 
-export type EscalateInput = z.infer<typeof escalateInput>;
+type EscalateInput = z.infer<typeof escalateInput>;
 
-export type EscalateOutput = {ticketId: string};
+type EscalateOutput = {ticketId: string};
 
 export const escalateToHuman: Tool<EscalateInput, EscalateOutput> = {
     name: "escalate_to_human",
