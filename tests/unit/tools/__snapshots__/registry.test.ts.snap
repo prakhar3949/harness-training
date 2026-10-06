@@ -1,0 +1,106 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ToolRegistry – model schemas > matches the snapshot (review any change: it's what the model sees) 1`] = `
+[
+  {
+    "description": "Looks up one of the current customer's orders by ID. Returns status, items, totals, delivery date and refunded amount. Read-only.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "orderId": {
+          "description": "The order ID, e.g 'ord_small'",
+          "minLength": 1,
+          "type": "string",
+        },
+      },
+      "required": [
+        "orderId",
+      ],
+      "type": "object",
+    },
+    "name": "lookup_order",
+  },
+  {
+    "description": "Checks if an order is eligible for a refund under the 30-day policy, and the maximum refundable amount. Does NOT issue a refund.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "orderId": {
+          "description": "The order ID, e.g 'ord_small'",
+          "minLength": 1,
+          "type": "string",
+        },
+        "requestedCents": {
+          "description": "Refund amount in cents. Omit to check a full refund of the remaining balance.",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer",
+        },
+      },
+      "required": [
+        "orderId",
+      ],
+      "type": "object",
+    },
+    "name": "check_refund_policy",
+  },
+  {
+    "description": "Issues a refund on an order. Use check_refund_policy first and confirm the amount with the customer before calling this.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "orderId": {
+          "description": "The order ID, e.g. 'ord_small'",
+          "minLength": 1,
+          "type": "string",
+        },
+        "reason": {
+          "description": "Short reason for the refund, shown in the audit trail",
+          "minLength": 1,
+          "type": "string",
+        },
+        "refundCents": {
+          "description": "Refund amount in cents, confirmed with the customer.",
+          "exclusiveMinimum": 0,
+          "maximum": 9007199254740991,
+          "type": "integer",
+        },
+      },
+      "required": [
+        "orderId",
+        "refundCents",
+        "reason",
+      ],
+      "type": "object",
+    },
+    "name": "issue_refund",
+  },
+  {
+    "description": "Hands the conversation to a human support agent by creating a ticket. Use when the request is outside refund policy, the customer is upset, or you are unsure. Returns a ticketId. Does not issue refunds or change orders.",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "properties": {
+        "summary": {
+          "description": "What the customer needs, in one or two sentences",
+          "minLength": 10,
+          "type": "string",
+        },
+        "urgency": {
+          "default": "normal",
+          "enum": [
+            "low",
+            "normal",
+            "high",
+          ],
+          "type": "string",
+        },
+      },
+      "required": [
+        "summary",
+      ],
+      "type": "object",
+    },
+    "name": "escalate_to_human",
+  },
+]
+`;

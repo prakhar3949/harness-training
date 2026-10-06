@@ -3,7 +3,7 @@ import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 
 export default defineConfig(
-  { ignores: ["dist", "node_modules", "traces"] },
+  { ignores: ["dist", "node_modules", "traces", "scratch"] },
   eslint.configs.recommended,
   tseslint.configs.recommended,
 );

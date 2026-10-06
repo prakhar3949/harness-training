@@ -6,3 +6,4 @@ evals/results/
 .env.*
 !.env.example
 *.log
+scratch/

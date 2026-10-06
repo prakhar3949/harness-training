@@ -8,7 +8,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done. The building agent
 Goal: a typed, tested set of tools you can call by hand. No LLM yet.
 - [x] **F0** Project scaffold, tooling, `verify.sh`
 - [x] **F1** Fake domain (orders, store, refund policy)
-- [ ] **F2** Tool layer: schema-validated tools + registry
+- [x] **F2** Tool layer: schema-validated tools + registry
 
 ✅ End of day: `npm run verify` is green; you can call every tool from a unit test.
 
@@ -56,7 +56,7 @@ Goal: make the repo stay clean without you.
 
 ## Week 2 – Days 8–10: Slack channel (humans and agents in one room)
 Goal: the same agent core now lives in a shared Slack channel. Support reps talk to the agents in threads, and refund approvals happen with Approve/Deny buttons in the thread. Nothing in `agent/`, `tools/`, `guardrails/` changes. Only a new front door is added, next to the CLI.
-- [ ] **F13** Chat transport abstraction + in-memory `FakeSlack` (offline, fully testable)
+- [ ] **F13** Chat transport abstraction + in-memory `FakeSlack` (offline, fully testable), plus `OrderStore.listTickets` for ticket ownership checks
 - [ ] **F14** Real Slack adapter (Bolt, Socket Mode), thread conversations, button approvals
 - [ ] **F15** Second agent in the channel: an "Auditor" agent that reviews each approval request before the human decides
 

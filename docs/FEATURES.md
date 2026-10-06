@@ -296,7 +296,8 @@ Key idea: **Slack is just another front door**, like the CLI. The agent loop, to
   - times out after `approvalTimeoutMs` → treated as **deny**, and says so in the thread.
   - emits `guardrail` trace events: `approval_requested`, `approval_granted|denied|timed_out` with the Slack user id.
 - MUST: the clock and timers are injectable so timeout tests don't sleep.
-- MUST: nothing in `agent/`, `tools/`, `guardrails/`, `domain/` is changed except to fix a real bug (if so, it gets its own commit).
+- MUST: `OrderStore.listTickets(customerId): Ticket[]` (returns copies, like `listOrdersByCustomer`). Planned exception to the rule below, in its own commit: reps need to see a customer's open escalations in the thread, and it closes an F2 test gap. Add a unit test that `escalate_to_human` files the ticket under `ctx.customerId`, even when the model input includes another `customerId`.
+- MUST: nothing in `agent/`, `tools/`, `guardrails/`, `domain/` is changed except to fix a real bug or the `listTickets` addition above (each gets its own commit).
 
 **Acceptance (integration tests with FakeSlack + ScriptedModel)**
 1. A rep mention with `customer:C1` on a small order gets a final confirmation in the same thread; the store has one refund.
@@ -309,6 +310,7 @@ Key idea: **Slack is just another front door**, like the CLI. The agent loop, to
 8. Two threads at once keep separate histories and customers.
 9. A bot message that mentions the bot doesn't trigger a run.
 10. A message in thread A during a running agent in thread A gets "working on it"; the run is not duplicated.
+11. A rep asks to escalate for `customer:C1`; `store.listTickets("C1")` has exactly one ticket, and `listTickets` for any other customer is unchanged.
 
 **Out of scope:** real Slack, persistence of pending approvals, DMs, slash commands.
 

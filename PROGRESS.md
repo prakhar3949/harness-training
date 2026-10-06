@@ -3,14 +3,16 @@
 Append-only: the newest entry goes at the **top** of "Entries". The coding agent writes one entry per finished feature and one per cleanup pass.
 
 ## Status
-- Current feature: **F2** (not started)
-- Last cleanup: none
+- Current feature: **F3** (not started)
+- Last cleanup: none (due now: F0–F2 done, cadence is every 3 features)
 - Eval pass rate: n/a
 
 ## Open issues
 _(bugs found but not yet fixed, spec questions for the user)_
+
 ## Cleanup backlog
 _(leftovers from time-boxed cleanup passes)_
+- Tools live in root `tools/` with snake_case file names; ARCHITECTURE.md shows `src/tools/` with camelCase. Pick one and align the doc or the code.
 
 ---
 
@@ -33,6 +35,19 @@ _(leftovers from time-boxed cleanup passes)_
 ---
 
 ## Entries
+
+### 2026-10-06: F2 Tool layer  (not yet committed)
+**Summary:** The agent's whole action surface: four zod-validated tools (`lookup_order`, `check_refund_policy` read; `issue_refund`, `escalate_to_human` write) and a `ToolRegistry` that validates input, runs tools, and turns every failure into `{ ok: false, error }` without ever throwing. `toModelSchemas()` converts the zod schemas to the JSON Schema the model sees.
+**Files:** added `tools/{types,registry,order_access,lookup_order,check_refund_policy,issue_refund,escalate_to_human}.ts`, `tests/unit/tools/*.test.ts` + `helpers.ts` + registry snapshot. Changed `src/domain/types.ts` (`Ticket`, `REFUND_NOT_ELIGIBLE`), `store.ts` (`createTicket`), `policy.ts` (`FULLY_REFUNDED` reason), `policy.test.ts`.
+**Concepts learned:** the LLM decides *when* and *with what* to call a tool, and the tool only does the work; `name`/`description`/`.describe()` are written for the model, which only sees `toModelSchemas()` output; each tool enforces its own preconditions (ownership, policy) because the model is an untrusted caller that can skip tools or pass made-up data; write tools re-check policy at the moment of acting (time-of-check vs time-of-use); "not eligible" is a normal result for a read tool but an error for a write tool; `safeParse` + discriminated-union results keep the registry from throwing; `DomainError` messages are safe for the model, unexpected errors get a generic message and are logged; a fresh store per test (`makeCtx`) keeps tests independent of order.
+**Tests:** 98 unit (policy 20, store 18, tools 60: registry 15, check_refund_policy 13, issue_refund 13, lookup_order 7, escalate_to_human 7, order_access 5), 1 e2e, eval stub; `npm run verify` exits 0.
+**Human-tester pass:**
+- tsx probe through `registry.execute` on a seeded store: `check_refund_policy ord_partial_refund` → eligible, max 4500; `issue_refund ord_small 2499` → `ref_1`; the same refund again → `ok:false` "FULLY_REFUNDED. Max refundable: 0 cents."
+- Bad input: `issue_refund {orderId: 42}` → `ok:false` listing all three field problems (orderId, refundCents, reason); unknown tool `refund_all` → `ok:false` listing the four real tools. Nothing threw.
+- `lookup_order ord_other_customer` → same "not found" message as a missing order; `escalate_to_human` with an extra `customerId: "cust_2"` → ticket created, extra key ignored.
+- Bugs found during the build and fixed before commit: refund input field named `totalCents` (model could copy the order total) → renamed `refundCents`, and `.int()` added; empty `Tracer {}` interface failed lint → minimal `emit(event)` shape.
+**Decisions / deviations from spec:** ownership is checked in the tools via `getOwnedOrder` (spec puts authorization in F7; kept as defense in depth next to the F7 `ownerMatches` guardrail). Missing and not-owned orders give the same `ORDER_NOT_FOUND` so IDs can't be probed. `check_refund_policy.requestedCents` is optional and defaults to the remaining balance. Added `FULLY_REFUNDED` policy reason (checked before the amount checks). `issue_refund` takes only `orderId`/`refundCents`/`reason` and recomputes eligibility itself rather than trusting an earlier check. Ticket ownership can't be read back yet; `OrderStore.listTickets` is scheduled in F13.
+**Next:** cleanup pass (due after 3 features), then F3 model interface + `ScriptedModel` + Anthropic adapter. Risk: mapping our `ToolSchema` to the SDK's `input_schema` and back.
 
 ### 2026-10-01: F1 Fake domain  (see commit)
 **Summary:** The "company system" the agent will act on: typed orders with integer cents, an `InMemoryOrderStore` that guards data invariants and throws `DomainError`, 9 seed orders covering every spec case, and a pure `evaluateRefund(order, cents, now)` with the clock injected.
