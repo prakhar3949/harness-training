@@ -51,6 +51,7 @@ export class ToolRegistry {
                 return { ok: false, error: err.message };
             }
             // Unexpected bug: log the details for us, give the model a generic message.
+            // TODO(F5): report through the tracer instead of console (GP-18).
             console.error(`[tool ${name}] unexpected error`, err);
             return { ok: false, error: `Tool ${name} failed unexpectedly. Do not retry; escalate to a human.` };
         }
