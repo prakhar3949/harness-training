@@ -24,11 +24,20 @@ export interface Refund {
   reason: string;
 }
 
+export interface Ticket {
+  id: string;
+  customerId: string;
+  summary: string;
+  urgency: "low" | "normal" | "high";
+  createdAt: string; // ISO date
+}
+
 export type DomainErrorCode =
   | "ORDER_NOT_FOUND"
   | "INVALID_AMOUNT"
   | "ORDER_NOT_DELIVERED"
-  | "OVER_REFUND";
+  | "OVER_REFUND"
+  |"REFUND_NOT_ELIGIBLE";
  
 export class DomainError extends Error {
   constructor(

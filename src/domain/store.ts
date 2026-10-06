@@ -1,15 +1,18 @@
-import { DomainError, type Order, type Refund } from "./types.js";
+import { DomainError, type Order, type Refund, type Ticket } from "./types.js";
 
 export interface OrderStore {
   getOrder(id: string): Order | undefined;
   listOrdersByCustomer(customerId: string): Order[];
   recordRefund(orderId: string, cents: number, reason: string): Refund;
+  createTicket(customerId: string, summary: string, urgency: Ticket["urgency"],createdAt: string): Ticket;
 }
 
 export class InMemoryOrderStore implements OrderStore {
   private orders = new Map<string, Order>();
   private refunds: Refund[] = [];
   private nextRefundSeq = 1;
+  private tickets: Ticket[] = [];
+  private nextTicketSeq = 1;
 
   constructor(orders: Order[] = []) {
     // Deep-copy so stores never share state with each other or the caller.
@@ -18,7 +21,7 @@ export class InMemoryOrderStore implements OrderStore {
 
   getOrder(id: string): Order | undefined {
     const o = this.orders.get(id);
-    return o && structuredClone(o);
+    return o ? structuredClone(o) : undefined;
   }
 
   listOrdersByCustomer(customerId: string): Order[] {
@@ -53,6 +56,13 @@ export class InMemoryOrderStore implements OrderStore {
     this.refunds.push(refund);
     return { ...refund };
   }
+
+  createTicket(customerId: string, summary: string, urgency: Ticket["urgency"], createdAt: string,): Ticket{ 
+  const ticket: Ticket = { id: `tkt_${this.nextTicketSeq++}`, customerId, summary, urgency, createdAt };
+  this.tickets.push(ticket);
+  return { ...ticket };
+  }
+  
 }
 
 // ---------------------------------------------------------------------------

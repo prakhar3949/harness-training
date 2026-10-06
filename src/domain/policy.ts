@@ -7,6 +7,7 @@ export type RefundReason =
   | "NOT_DELIVERED"
   | "MISSING_DELIVERY_DATE"
   | "OUTSIDE_WINDOW"
+  | "FULLY_REFUNDED"
   | "INVALID_AMOUNT"
   | "EXCEEDS_REMAINING";
 
@@ -48,7 +49,9 @@ export function evaluateRefund(
     }
   }
 
-  if (!Number.isInteger(requestedCents) || requestedCents <= 0) {
+  if (remaining === 0) {
+    reasons.push("FULLY_REFUNDED");
+  } else if (!Number.isInteger(requestedCents) || requestedCents <= 0) {
     reasons.push("INVALID_AMOUNT");
   } else if (requestedCents > remaining) {
     reasons.push("EXCEEDS_REMAINING");

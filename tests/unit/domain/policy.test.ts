@@ -39,7 +39,8 @@ describe("evaluateRefund – every seed order", () => {
     // 31 days → window closed; max is 0 because nothing can be refunded
     ["ord_day31",          3500,  false, 0,     ["OUTSIDE_WINDOW"]],
     // In window, but everything is already refunded → remaining is 0
-    ["ord_full_refund",    1,     false, 0,     ["EXCEEDS_REMAINING"]],
+    ["ord_full_refund",    1,     false, 0,     ["FULLY_REFUNDED"]],
+    ["ord_full_refund",    0,     false, 0,     ["FULLY_REFUNDED"]],
     // 6000 total − 1500 refunded = 4500 left: exactly 4500 is OK, 1 cent more is not
     ["ord_partial_refund", 4500,  true,  4500,  []],
     ["ord_partial_refund", 4501,  false, 4500,  ["EXCEEDS_REMAINING"]],
