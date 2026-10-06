@@ -11,7 +11,7 @@ export class ToolRegistry {
         if (this.tools.has(tool.name)) {
             throw new Error(`Tool "${tool.name}" is already registered`);
         }
-        this.tools.set(tool.name, tool as AnyTool);
+        this.tools.set(tool.name, tool);
         return this;
     }
 
