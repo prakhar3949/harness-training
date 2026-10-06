@@ -32,10 +32,11 @@ harness-training/
 │   ├── tools/                 # LAYER 1
 │   │   ├── types.ts           #   Tool<TInput,TOutput>: name, description, zod schema, risk, execute
 │   │   ├── registry.ts        #   ToolRegistry: register, get, list, toModelSchemas()
-│   │   ├── lookupOrder.ts
-│   │   ├── checkRefundPolicy.ts
-│   │   ├── issueRefund.ts
-│   │   └── escalateToHuman.ts
+│   │   ├── order_access.ts    #   getOwnedOrder(): shared lookup + ownership check
+│   │   ├── lookup_order.ts    #   Tool files are named after the tool the model calls
+│   │   ├── check_refund_policy.ts
+│   │   ├── issue_refund.ts
+│   │   └── escalate_to_human.ts
 │   ├── llm/                   # Model boundary (the ONLY place that knows about providers)
 │   │   ├── types.ts           #   Message, ContentBlock, ModelClient interface, ModelResponse
 │   │   ├── scripted.ts        #   ScriptedModel: replays canned responses (tests + evals)

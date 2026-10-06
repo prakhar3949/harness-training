@@ -1,4 +1,4 @@
-import { DomainError, type Order } from "../src/domain/types.js";
+import { DomainError, type Order } from "../domain/types.js";
 import type { ToolContext } from "./types.ts";
 
 /**

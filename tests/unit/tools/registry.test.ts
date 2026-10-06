@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
 import { z } from "zod";
-import { ToolRegistry } from "../../../tools/registry.js";
-import type { Tool } from "../../../tools/types.js";
-import { lookupOrder } from "../../../tools/lookup_order.js";
-import { checkRefundPolicy } from "../../../tools/check_refund_policy.js";
-import { issueRefund } from "../../../tools/issue_refund.js";
-import { escalateToHuman } from "../../../tools/escalate_to_human.js";
+import { ToolRegistry } from "../../../src/tools/registry.js";
+import type { Tool } from "../../../src/tools/types.js";
+import { lookupOrder } from "../../../src/tools/lookup_order.js";
+import { checkRefundPolicy } from "../../../src/tools/check_refund_policy.js";
+import { issueRefund } from "../../../src/tools/issue_refund.js";
+import { escalateToHuman } from "../../../src/tools/escalate_to_human.js";
 import { makeCtx } from "./helpers.js";
 
 const makeRegistry = () =>

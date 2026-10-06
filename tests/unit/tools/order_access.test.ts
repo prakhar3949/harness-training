@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getOwnedOrder } from "../../../tools/order_access.js";
+import { getOwnedOrder } from "../../../src/tools/order_access.js";
 import { DomainError } from "../../../src/domain/types.js";
 import { makeCtx } from "./helpers.js";
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { lookupOrder } from "../../../tools/lookup_order.js";
+import { lookupOrder } from "../../../src/tools/lookup_order.js";
 import { makeCtx } from "./helpers.js";
 
 describe("lookup_order", () => {

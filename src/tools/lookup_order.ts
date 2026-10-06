@@ -1,6 +1,6 @@
 import {z}  from "zod";
 import type { Tool } from "./types.ts";
-import type { Order } from "../src/domain/types.js";
+import type { Order } from "../domain/types.js";
 import { getOwnedOrder } from "./order_access.js";
 
 export const lookupOrderInputSchema = z.object({

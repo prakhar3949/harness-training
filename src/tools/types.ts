@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { OrderStore } from "../src/domain/store.js";
+import type { OrderStore } from "../domain/store.js";
 export type ToolRisk = "read" | "write";
 
 /** Receives trace events. Full event types and implementations come in F5. */

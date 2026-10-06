@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { issueRefund } from "../../../tools/issue_refund.js";
+import { issueRefund } from "../../../src/tools/issue_refund.js";
 import { SEED_NOW } from "../../../src/domain/store.js";
 import { makeCtx } from "./helpers.js";
 

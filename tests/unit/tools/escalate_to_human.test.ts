@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { escalateToHuman } from "../../../tools/escalate_to_human.js";
+import { escalateToHuman } from "../../../src/tools/escalate_to_human.js";
 import { makeCtx } from "./helpers.js";
 
 describe("escalate_to_human", () => {

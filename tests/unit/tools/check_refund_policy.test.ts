@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { checkRefundPolicy } from "../../../tools/check_refund_policy.js";
+import { checkRefundPolicy } from "../../../src/tools/check_refund_policy.js";
 import { SEED_NOW } from "../../../src/domain/store.js";
 import { makeCtx } from "./helpers.js";
 

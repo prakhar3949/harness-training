@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DomainError } from "../src/domain/types.js";
+import { DomainError } from "../domain/types.js";
 import type { Tool, ToolContext, ToolResult, ToolSchema } from "./types.ts";
 
 type AnyTool = Tool<unknown, unknown>;

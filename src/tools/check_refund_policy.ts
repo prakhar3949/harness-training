@@ -1,6 +1,6 @@
 import {z} from "zod";
 import type { Tool } from "./types.ts";
-import { evaluateRefund, type RefundEvaluation } from "../src/domain/policy.js";
+import { evaluateRefund, type RefundEvaluation } from "../domain/policy.js";
 import {getOwnedOrder} from "./order_access.js";
 
 export const checkRefundPolicyInput = z.object({

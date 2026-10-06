@@ -1,7 +1,7 @@
 import {z}  from "zod";
 import type { Tool } from "./types.ts";
-import { evaluateRefund } from "../src/domain/policy.js";
-import { DomainError, type Refund } from "../src/domain/types.js";
+import { evaluateRefund } from "../domain/policy.js";
+import { DomainError, type Refund } from "../domain/types.js";
 import { getOwnedOrder } from "./order_access.js";
 
 // issue_refund: a write tool, so it's stricter
