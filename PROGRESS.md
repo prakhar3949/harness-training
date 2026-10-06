@@ -4,7 +4,7 @@ Append-only: the newest entry goes at the **top** of "Entries". The coding agent
 
 ## Status
 - Current feature: **F3** (not started)
-- Last cleanup: none (due now: F0–F2 done, cadence is every 3 features)
+- Last cleanup: 2026-10-06 (after F2; next due after F5)
 - Eval pass rate: n/a
 
 ## Open issues
@@ -12,7 +12,9 @@ _(bugs found but not yet fixed, spec questions for the user)_
 
 ## Cleanup backlog
 _(leftovers from time-boxed cleanup passes)_
-- Tools live in root `tools/` with snake_case file names; ARCHITECTURE.md shows `src/tools/` with camelCase. Pick one and align the doc or the code.
+- GP-18: `ToolRegistry.execute` logs unexpected errors with `console.error` (marked `TODO(F5)`); replace with a tracer event in F5.
+- Import style is mixed: tools import siblings with `.ts` and `.js` extensions, and `{z}` vs `{ z }`. Pick one; a lint rule could enforce it (F11).
+- `MS_PER_DAY` is defined in `policy.ts`, `store.ts` and two test files. Not yet three copies in `src/`, so no shared helper (GP-04); revisit if a third appears.
 
 ---
 
@@ -35,6 +37,20 @@ _(leftovers from time-boxed cleanup passes)_
 ---
 
 ## Entries
+
+### 2026-10-06: Cleanup after F0–F2  (481dc64..ef95f47)
+**Baseline:** `npm run verify` green, 99 unit + 1 e2e; eval not implemented yet (stub output identical before and after).
+**Mechanical scan** (grep fallback, F11 checker not built): no `any`, `.only`/`.skip`, orphan TODOs or real-clock calls in `src`; no file over 200 lines (largest `store.ts`, 162).
+**Violations found → fixed:**
+- GP-03/GP-20 (1): tools lived in root `tools/`, outside `src/` and outside ARCHITECTURE.md → moved to `src/tools/`; ARCHITECTURE now lists the real snake_case file names and `order_access.ts`. (481dc64)
+- GP-05 (1): `tool as AnyTool` cast in `register` was unnecessary → removed. (e833796)
+- GP-16 (11): tool-local input schemas and input/output types were exported but unused elsewhere → no longer exported. (b191099)
+- GP-19 (2): stale comment pointing at a "note below" that didn't exist, and a comment restating the code → removed. (81488f5)
+- GP-18 (1, deferred): `console.error` in the registry is the planned F5 hand-off → marked `TODO(F5)`, kept in backlog. (ef95f47)
+**Checked, no violation:** GP-06 (validation happens once, in `registry.execute`), GP-08 (`ToolResult` is a union), GP-09/GP-10 (ownership and policy are enforced in code; tools throw `DomainError` and the registry turns it into an error value), GP-13 (every tool has happy-path, invalid-input and domain-error tests). A suspected stale `lookup_order` description was already fixed in the F2 commit.
+**Metrics:** source LOC 505 (`src/`); tests 99 unit, 1 e2e; eval n/a. Violations: 16 found, 15 fixed, 1 deferred to F5.
+**Rule improvements:** none yet; each `[review]` violation appeared once. GP-16 (unused exports) is a candidate for the F11 checker.
+**Next:** F3.
 
 ### 2026-10-06: F2 Tool layer  (not yet committed)
 **Summary:** The agent's whole action surface: four zod-validated tools (`lookup_order`, `check_refund_policy` read; `issue_refund`, `escalate_to_human` write) and a `ToolRegistry` that validates input, runs tools, and turns every failure into `{ ok: false, error }` without ever throwing. `toModelSchemas()` converts the zod schemas to the JSON Schema the model sees.
