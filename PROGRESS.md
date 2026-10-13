@@ -3,7 +3,7 @@
 Append-only: the newest entry goes at the **top** of "Entries". The coding agent writes one entry per finished feature and one per cleanup pass.
 
 ## Status
-- Current feature: **F3** (not started)
+- Current feature: **F4** (not started)
 - Last cleanup: 2026-10-06 (after F2; next due after F5)
 - Eval pass rate: n/a
 
@@ -37,6 +37,19 @@ _(leftovers from time-boxed cleanup passes)_
 ---
 
 ## Entries
+
+### 2026-10-13: F3 Model interface, ScriptedModel, Anthropic adapter  (see commit)
+**Summary:** The model boundary. `ModelClient` is a one-method contract (`complete(request)`) with our own `Message`/`ContentBlock` types. `ScriptedModel` replays canned responses offline and records every request. `AnthropicModel` translates our types to and from the SDK and maps SDK errors to a typed `ModelError`.
+**Files:** added `src/llm/{types,scripted,anthropic}.ts`, `tests/unit/llm/{scripted,anthorpic}.test.ts`. Changed `package.json`/lock (`@anthropic-ai/sdk`), `docs/ARCHITECTURE.md` (`thinking` block).
+**Concepts learned:** an adapter is a translator at the edge, so the rest of the code never sees provider names and swapping providers means writing one new file; `interface` is the contract and `implements` makes the compiler check a class against it; the system prompt is a separate field on the request, not a message role; `ContentBlock` is a discriminated union, and a `switch` over `block.type` fails to compile until every variant is handled; dependency injection (`SdkClient`, `ModelClient`) lets tests pass fakes; `structuredClone` snapshots the request, because the agent mutates its messages array after each call; a thinking block carries a `signature` and must be sent back unchanged in tool loops; only SDK errors are mapped to `ModelError`, anything else is a bug and propagates.
+**Tests:** 112 unit (13 new: ScriptedModel 4, adapter 9), 1 e2e, eval stub; `npm run verify` exits 0.
+**Human-tester pass:**
+- Adding `thinking` to `ContentBlock` made `tsc` fail with "lacks ending return statement" in `toSdkBlock` until the case was added (exhaustiveness check working as intended).
+- Fake SDK replies are typed against the real SDK types, so a missing `caller` on `tool_use` was caught at compile time (fixed in the test).
+- A new thinking test failed with `content: []` because the incoming loop dropped thinking blocks → fixed by adding the branch.
+- No real API call was made; the optional live check is not written yet.
+**Decisions / deviations from spec:** added a `thinking` variant to `ContentBlock` (not in the spec) so the signature survives tool loops on thinking models. `redacted_thinking`, images and server-tool blocks are left out (GP-04). Default model id `claude-opus-5-5` taken from the `claude-api` skill. Unsupported stop reasons (`refusal`, `pause_turn`, `stop_sequence`) become `ModelError("bad_request")` until the loop handles them. The test file is named `anthorpic.test.ts` (typo).
+**Next:** F4 agent loop. It must append the model's whole `content` as the assistant message, keeping thinking blocks. Cleanup is due after F5.
 
 ### 2026-10-06: Cleanup after F0–F2  (481dc64..ef95f47)
 **Baseline:** `npm run verify` green, 99 unit + 1 e2e; eval not implemented yet (stub output identical before and after).

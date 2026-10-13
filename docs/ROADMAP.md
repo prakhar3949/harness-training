@@ -14,7 +14,7 @@ Goal: a typed, tested set of tools you can call by hand. No LLM yet.
 
 ## Day 2 – The model boundary + Orchestration (Layer 2)
 Goal: an agent that completes a refund end-to-end against a scripted model.
-- [ ] **F3** Model interface, `ScriptedModel`, Anthropic adapter
+- [x] **F3** Model interface, `ScriptedModel`, Anthropic adapter
 - [ ] **F4** Agent loop (ReAct, stop conditions, step budget)
 
 ✅ End of day: integration test "refund small order" passes deterministically.

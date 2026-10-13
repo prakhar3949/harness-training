@@ -159,6 +159,7 @@ The CLI and Slack are two front doors to the same core. `FakeSlack` implements t
 // llm/types.ts
 type ContentBlock =
   | { type: "text"; text: string }
+  | { type: "thinking"; thinking: string; signature: string }
   | { type: "tool_use"; id: string; name: string; input: unknown }
   | { type: "tool_result"; toolUseId: string; content: string; isError?: boolean };
 type Message = { role: "user" | "assistant"; content: ContentBlock[] };
