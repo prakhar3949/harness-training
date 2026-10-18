@@ -13,7 +13,7 @@ Each principle has an ID so commits, reviews and the checker can cite it (e.g. `
 ## A. Structure
 
 **GP-01 Layers only point downward.** [mechanical]
-Imports follow the dependency diagram in `ARCHITECTURE.md`. `domain/` and `telemetry/` import nothing else from `src/`. Only `src/llm/anthropic.ts` imports `@anthropic-ai/sdk`; only `src/slack/boltTransport.ts` imports `@slack/bolt`. No Slack types outside `src/slack/`.
+Imports follow the dependency diagram in `ARCHITECTURE.md`. `domain/` and `telemetry/` import nothing else from `src/`. Only `src/llm/anthropic.ts` imports `@anthropic-ai/sdk`; only `src/llm/gemini.ts` imports `@google/genai`; only `src/slack/boltTransport.ts` imports `@slack/bolt`. No Slack types outside `src/slack/`.
 
 **GP-02 One concept per file; files stay small.** [mechanical]
 Max 200 lines per source file, 60 lines per function. If you hit the limit, the file is doing two things.

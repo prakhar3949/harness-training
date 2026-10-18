@@ -16,7 +16,7 @@ You are helping a learner build an agent harness from scratch in TypeScript. Rea
 ## Hard rules
 - Work on **one feature at a time**. Don't start F(n+1) until F(n) meets the Definition of Done.
 - Never weaken a test, skip a test, or edit `evals/baseline.json` just to get green. If a spec is wrong, say so in PROGRESS.md and ask.
-- No network in tests. Only `src/llm/anthropic.ts` may use the Anthropic SDK.
+- No network in tests (live checks live in `tests/live/`, never run by `verify`). Only `src/llm/anthropic.ts` may use the Anthropic SDK, and only `src/llm/gemini.ts` the Google GenAI SDK.
 - For current Claude model ids and SDK usage, consult the `claude-api` skill; don't guess from memory.
 - Keep the Golden Principles. Cite their IDs in commits when relevant.
 - Explain new concepts briefly in the PROGRESS entry ("What I learned / concepts") because the user is learning.
