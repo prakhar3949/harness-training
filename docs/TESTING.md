@@ -9,10 +9,11 @@ The building agent must verify its own work the way a careful human would: **rea
 | Unit | `tests/unit/**` mirrors `src/**` | ms | Pure functions, tools, guardrail rules, schema edges |
 | Integration | `tests/integration/**` | < 1s each | Loop + tools + guardrails + context + tracer with `ScriptedModel` |
 | Eval | `evals/` (`npm run eval`) | seconds | Behavior on realistic scenarios, graded on world state |
+| Live | `tests/live/**` (`npm run test:live`) | seconds | Real model APIs accept what the adapters send; skipped without a key, never run by `verify` |
 | E2E | `tests/e2e/**` spawns `node`/`tsx src/cli/main.ts` | seconds | The real binary: flags, exit codes, stdout, trace files |
 | Human-tester pass | manual commands the agent runs and inspects | minutes | Things tests didn't think of |
 
-All of it (except live evals) runs **offline and deterministically**. No test may call the network. The clock is injected; tests use a fixed `now`.
+All of it (except live tests and live evals) runs **offline and deterministically**. No test may call the network. The clock is injected; tests use a fixed `now`.
 
 ## Human-tester pass (the agent does this after every feature)
 

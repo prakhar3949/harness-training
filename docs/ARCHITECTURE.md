@@ -11,8 +11,9 @@ harness-training/
 ├── .gitignore                 # The ONLY .gitignore (repo root). Ignores node_modules/, dist/,
 │                              #   traces/, evals/results/, .env, .env.* (except .env.example), *.log
 ├── .env.example               # Committed. Every env var with a placeholder value (F0; Slack vars added in F14)
-├── .env                       # NOT committed (gitignored). Your real secrets: ANTHROPIC_API_KEY, SLACK_* tokens
+├── .env                       # NOT committed (gitignored). Your real secrets: ANTHROPIC_API_KEY, GEMINI_API_KEY, SLACK_* tokens
 ├── package.json / tsconfig.json / vitest.config.ts / eslint.config.js   (created in F0)
+├── vitest.live.config.ts      # `npm run test:live` only: real API calls, never part of verify (F3)
 ├── .claude/skills/
 │   ├── build-feature/SKILL.md # The "finish one feature" workflow
 │   └── cleanup/SKILL.md       # The recurring cleanup workflow
@@ -40,7 +41,8 @@ harness-training/
 │   ├── llm/                   # Model boundary (the ONLY place that knows about providers)
 │   │   ├── types.ts           #   Message, ContentBlock, ModelClient interface, ModelResponse
 │   │   ├── scripted.ts        #   ScriptedModel: replays canned responses (tests + evals)
-│   │   └── anthropic.ts       #   Real adapter (thin)
+│   │   ├── anthropic.ts       #   Real adapter for Claude (thin)
+│   │   └── gemini.ts          #   Real adapter for Gemini (thin)
 │   ├── agent/                 # LAYER 2
 │   │   ├── loop.ts            #   runAgent(): the ReAct loop, stop conditions, step budget
 │   │   ├── types.ts           #   AgentConfig, AgentResult, StopReason
@@ -81,7 +83,8 @@ harness-training/
 ├── tests/
 │   ├── unit/                  # Mirrors src/ one-to-one
 │   ├── integration/           # Loop + tools + guardrails + tracer with ScriptedModel
-│   └── e2e/                   # Spawns the real CLI as a child process (the "human tester")
+│   ├── e2e/                   # Spawns the real CLI as a child process (the "human tester")
+│   └── live/                  # Real model calls, skipped without a key; `npm run test:live` (F3)
 ├── slack/manifest.yaml        # Slack app manifest (F14)
 ├── scripts/
 │   ├── check-principles.ts    # Mechanical enforcement of GOLDEN_PRINCIPLES (F9)
@@ -104,6 +107,7 @@ cli ──► agent ──► tools ──► domain
 slack ──► chat ──► agent, guardrails (ApprovalHandler), telemetry
 
 llm/anthropic.ts  ← only file allowed to import "@anthropic-ai/sdk"
+llm/gemini.ts     ← only file allowed to import "@google/genai"
 slack/boltTransport.ts ← only file allowed to import "@slack/bolt"
 chat/             ← never imports slack/ (it talks to ChatTransport only)
 domain/           ← imports nothing from the rest of src/
@@ -184,6 +188,6 @@ type StopReason = "final_answer" | "max_steps" | "guardrail_abort" | "model_erro
 
 - **Tools return data, never throw for expected failures.** Errors become `tool_result` with `isError: true` so the model can recover.
 - **Guardrails are plain functions**, not prompt text. Prompts advise; code enforces.
-- **The model is an interface.** Tests and evals use `ScriptedModel`; only `anthropic.ts` touches a network.
+- **The model is an interface.** Tests and evals use `ScriptedModel`; only the adapters (`anthropic.ts`, `gemini.ts`) touch a network.
 - **State lives in `domain/store.ts`**, so evals grade the *world state* (was the refund issued once?), not the model's wording.
 - **Every side effect goes through a tool**, and every tool call goes through the tracer.

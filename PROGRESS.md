@@ -38,6 +38,18 @@ _(leftovers from time-boxed cleanup passes)_
 
 ## Entries
 
+### 2026-10-18: F3 follow-up: Gemini adapter and live tests  (see commit)
+**Summary:** A second `ModelClient`, `GeminiModel`, backed by `@google/genai` (default model `gemini-3.8-flash`). Added opt-in live tests for both adapters in `tests/live/`, run with `npm run test:live` and never by `verify`.
+**Files:** added `src/llm/gemini.ts`, `tests/unit/llm/gemini.test.ts`, `tests/live/{anthropic,gemini}.live.test.ts`, `vitest.live.config.ts`. Renamed `anthorpic.test.ts` → `anthropic.test.ts`. Changed `package.json` (`@google/genai`, `test:live`), `.env.example`, `docs/{ARCHITECTURE,TESTING}.md`.
+**Concepts learned:** the adapter pattern paid off; a second provider is one new file, and nothing outside `src/llm/` changed. Gemini differs in shape (`model` role, `parts`, `functionResponse` answered by name, `thoughtSignature` on the next part, `STOP` even on tool calls, optional call ids), and the adapter hides all of it behind our types. Offline fake tests check every branch of our translation deterministically; live tests check our assumptions about the real API (only a real call can say whether Gemini accepts the schema or the signature round trip). Env var names are case-sensitive, and Vitest doesn't load `.env` on its own, so `test:live` uses `node --env-file-if-exists`.
+**Tests:** 128 unit (16 new for Gemini), 1 e2e, eval stub; `npm run verify` exits 0. Live: Gemini 2/2 passed (text reply and a tool-call round trip, including the signature); Anthropic fails with a 400 "credit balance too low" (no credit on the account).
+**Human-tester pass:**
+- Live tests were skipped at first: `.env` held `GOOGLE_API_key` (wrong name and case) → renamed to `GEMINI_API_KEY`.
+- `vitest.live.config.ts` was first placed in `tests/live/` → moved to the repo root, where the script looks.
+- `npm run test:live` runs every live file; `npm run test:live -- gemini` runs only Gemini.
+**Decisions / deviations from spec:** F3 lists multiple providers as out of scope; added at the user's request because the Anthropic account has no credit. GP-01 now also limits `@google/genai` to `src/llm/gemini.ts` (separate `docs(principles)` commit). Gemini's `thoughtSignature` is carried in our existing `thinking` block, so `ContentBlock` didn't change. An invalid Gemini key may arrive as HTTP 400 and map to `bad_request`, not `auth` (no message matching). Nothing chooses a provider yet; that happens in F4/F6 wiring.
+**Next:** F4 agent loop.
+
 ### 2026-10-13: F3 Model interface, ScriptedModel, Anthropic adapter  (see commit)
 **Summary:** The model boundary. `ModelClient` is a one-method contract (`complete(request)`) with our own `Message`/`ContentBlock` types. `ScriptedModel` replays canned responses offline and records every request. `AnthropicModel` translates our types to and from the SDK and maps SDK errors to a typed `ModelError`.
 **Files:** added `src/llm/{types,scripted,anthropic}.ts`, `tests/unit/llm/{scripted,anthorpic}.test.ts`. Changed `package.json`/lock (`@anthropic-ai/sdk`), `docs/ARCHITECTURE.md` (`thinking` block).
