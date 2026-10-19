@@ -61,6 +61,17 @@ describe("InMemoryOrderStore – reads", () => {
     expect(store.getOrder("ord_small")?.totalCents).toBe(2499);
     expect(store.getOrder("nope")).toBeUndefined();
   });
+    it("listRefunds returns recorded refunds as copies", () => {
+    const store = new InMemoryOrderStore(seedOrders());
+    store.recordRefund("ord_small", 500, "dented");
+    const refunds = store.listRefunds();
+    expect(refunds).toEqual([{ id: "ref_1", orderId: "ord_small", cents: 500, reason: "dented" }]);
+    const [first] = refunds;
+    if (first) {
+      first.cents = 1;
+    }
+    expect(store.listRefunds()[0]?.cents).toBe(500);
+  });
 
   it("listOrdersByCustomer only returns that customer's orders", () => {
     const store = newStore();

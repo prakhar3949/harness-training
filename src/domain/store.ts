@@ -3,6 +3,7 @@ import { DomainError, type Order, type Refund, type Ticket } from "./types.js";
 export interface OrderStore {
   getOrder(id: string): Order | undefined;
   listOrdersByCustomer(customerId: string): Order[];
+  listRefunds(): Refund[];
   recordRefund(orderId: string, cents: number, reason: string): Refund;
   createTicket(customerId: string, summary: string, urgency: Ticket["urgency"],createdAt: string): Ticket;
 }
@@ -30,6 +31,10 @@ export class InMemoryOrderStore implements OrderStore {
       .map((o) => structuredClone(o));
   }
 
+  listRefunds(): Refund[] {
+    return this.refunds.map((r) => ({ ...r }));
+  }
+  
   recordRefund(orderId: string, cents: number, reason: string): Refund {
     const order = this.orders.get(orderId);
     if (!order) {
