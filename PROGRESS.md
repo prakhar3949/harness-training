@@ -16,7 +16,7 @@ _(leftovers from time-boxed cleanup passes)_
 - GP-18: `ToolRegistry.execute` logs unexpected errors with `console.error` (marked `TODO(F5)`); replace with a tracer event in F5.
 - Import style is mixed: tools import siblings with `.ts` and `.js` extensions, and `{z}` vs `{ z }`. Pick one; a lint rule could enforce it (F11).
 - `MS_PER_DAY` is defined in `policy.ts`, `store.ts` and two test files. Not yet three copies in `src/`, so no shared helper (GP-04); revisit if a third appears.
-- `src/agent/loop.ts`: mixed 2/4-space indentation, and a comment says "thinking boxes" (should be "blocks"). A formatter would settle the indentation (F11).
+- `src/agent/loop.ts`: mixed 2/4-space indentation. A formatter would settle it (F11).
 
 ---
 

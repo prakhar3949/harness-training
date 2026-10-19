@@ -27,7 +27,7 @@ export async function runAgentLoop(config: AgentConfig): Promise<AgentResult> {
         usage.inputTokens += response.usage.inputTokens;
         usage.outputTokens += response.usage.outputTokens;
 
-        //Keep the whole response, thinking boxes included: providers need them back on the next call.
+        //Keep the whole response, thinking blocks included: providers need them back on the next call.
         messages.push({ role: "assistant", content: response.content });
 
         const calls = response.content.filter((block) => block.type === "tool_use");
