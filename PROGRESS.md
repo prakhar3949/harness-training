@@ -9,7 +9,6 @@ Append-only: the newest entry goes at the **top** of "Entries". The coding agent
 
 ## Open issues
 _(bugs found but not yet fixed, spec questions for the user)_
-- An empty model reply (`content: []`) ends the run with `final_answer` and `finalText: ""`, and the empty assistant message stays in `messages`. Real APIs reject empty assistant messages on the next call, so a multi-turn chat (F6) would fail on the following turn. Decide in F6: drop empty assistant messages, or treat an empty reply as `model_error`.
 
 ## Cleanup backlog
 _(leftovers from time-boxed cleanup passes)_
@@ -44,14 +43,14 @@ _(leftovers from time-boxed cleanup passes)_
 **Summary:** `runAgentLoop` runs the ReAct loop: call the model, run every requested tool through the registry, append one assistant message and one user message of matching `tool_result`s, and repeat until the model answers in text (`final_answer`), the step budget runs out (`max_steps`), or the model fails (`model_error`). `buildSystemPrompt()` gives the model its role, the policy and the working rules.
 **Files:** added `src/agent/{types,loop,prompt}.ts`, `tests/integration/agent/loop.test.ts`. Changed `src/domain/store.ts` (`listRefunds()`, needed to check "exactly one refund" and later by evals) and `tests/unit/domain/store.test.ts`.
 **Concepts learned:** the loop only knows `ModelClient`, so it works with `ScriptedModel`, Claude or Gemini unchanged; copy the input array (`[...config.messages]`) so the caller's history is never mutated, and a shallow copy is enough because messages are only appended; keep the model's whole reply, thinking blocks included; answer every `tool_use` of one turn in a single user message, in order, run sequentially so writes are predictable; tool failures are values (`isError: true`) the model can read and recover from, while only `ModelError` is caught, so real bugs fail loudly; a required `messages` field (not `messages?`) moves the work into the loop instead of every caller (GP-08); `Extract<Union, {...}>` names one member of a union; TypeScript 5.5+ infers type predicates in `filter`; the clock and store are injected, so integration tests are deterministic.
-**Tests:** 137 unit + integration (8 new loop tests covering all 6 acceptance cases plus thinking-block retention and usage totals, 1 new store test), 1 e2e, eval stub; `npm run verify` exits 0.
+**Tests:** 138 unit + integration (9 new loop tests covering all 6 acceptance cases plus thinking-block retention and usage totals, 1 new store test), 1 e2e, eval stub; `npm run verify` exits 0.
 **Human-tester pass:** ran the loop from a scratch script with scripted models and read every message:
 - Happy refund: 4 steps, ids match across each `tool_use`/`tool_result` pair, one refund in the store.
 - Another customer's order: the tool answers "not found" (no leak), and the run ends normally.
 - The same refund twice: the second call gets `FULLY_REFUNDED` as an error result; one refund recorded. No lookup was required first; that guardrail comes in F7.
 - Unknown tool name: error result listing the real tools, no crash.
 - `maxSteps: 0`: `max_steps` with 0 steps and the input unchanged.
-- Empty model reply: ends as `final_answer` with empty text and an empty assistant message → filed in Open issues (matters for F6 multi-turn chat).
+- Empty model reply: first ended as `final_answer` with empty text, leaving an empty assistant message that real APIs reject on the next call → fixed: a reply with no text and no tool call now stops with `model_error` and stays out of the history (regression test added).
 **Decisions / deviations from spec:** the function is named `runAgentLoop`; FEATURES.md and ARCHITECTURE.md were updated to match. Tools in one turn run sequentially, not in parallel; the spec only requires all to be executed and answered. `max_tokens` replies with text only are treated as `final_answer`. `prompt.ts` reads the window from `REFUND_WINDOW_DAYS` so the prompt can't drift from the policy.
 **Next:** F5 tracer and trace summarizer, then the cleanup pass (due after F5).
 

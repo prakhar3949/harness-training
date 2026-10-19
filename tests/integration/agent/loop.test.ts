@@ -166,4 +166,14 @@ describe("runAgentLoop", () => {
 
     expect(result.usage).toEqual({ inputTokens: 250, outputTokens: 30 });
   });
+  it("treats an empty model reply as model_error and keeps it out of the history", async () => {
+    const { run } = setup([{ content: [], stopReason: "end_turn", usage: { inputTokens: 0, outputTokens: 0 } }]);
+
+    const result = await run();
+
+    expect(result.stopReason).toBe("model_error");
+    expect(result.steps).toBe(1);
+    expect(result.messages).toHaveLength(1);
+  });
+
 });

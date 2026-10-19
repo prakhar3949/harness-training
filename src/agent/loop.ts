@@ -26,6 +26,11 @@ export async function runAgentLoop(config: AgentConfig): Promise<AgentResult> {
         steps++;
         usage.inputTokens += response.usage.inputTokens;
         usage.outputTokens += response.usage.outputTokens;
+        
+        // An empty reply is a failure, not an answer; keeping it would also break the next API call.
+        if (!response.content.some((block) => block.type === "text" || block.type === "tool_use")) {
+            return { stopReason: "model_error", messages, steps, usage };
+        }
 
         //Keep the whole response, thinking blocks included: providers need them back on the next call.
         messages.push({ role: "assistant", content: response.content });
