@@ -95,7 +95,7 @@ Paths refer to [`ARCHITECTURE.md`](ARCHITECTURE.md). Test strategy is in [`TESTI
 **Layer:** 2 Orchestration. **Why:** the core of every agent; small enough to hold in your head.
 
 **Requirements**
-- MUST: `runAgent({ model, registry, systemPrompt, messages, maxSteps, ctx }): Promise<AgentResult>`.
+- MUST: `runAgentLoop({ model, registry, systemPrompt, messages, maxSteps, ctx }): Promise<AgentResult>`.
 - MUST: loop = call model → if `tool_use` blocks: execute each via `registry.execute`, append **one** assistant message and **one** user message of `tool_result` blocks (ids must match) → repeat; if text only → stop `final_answer`.
 - MUST: stop reasons: `final_answer`, `max_steps`, `model_error` (catches `ModelError`; no unhandled rejections). `guardrail_abort` and `context_overflow` are declared now, produced in F7/F8.
 - MUST: `AgentResult = { stopReason, finalText?, messages, steps, usage }`; input `messages` is never mutated.
@@ -349,7 +349,7 @@ Key idea: **Slack is just another front door**, like the CLI. The agent loop, to
 **Layer:** 2 (multi-agent handoff). **Why:** a first multi-agent pattern where two agents and humans share one conversation, and you see that "another agent" is just another loop with different tools and a different prompt.
 
 **Requirements**
-- MUST: the Auditor is a second `runAgent` configuration: own system prompt, **read-only tools only** (`lookup_order`, `check_refund_policy`, and `list_customer_orders` if F8 was built), small `maxSteps` (4). It can't call `issue_refund` (enforce by giving it a registry without write tools, and test it).
+- MUST: the Auditor is a second `runAgentLoop` configuration: own system prompt, **read-only tools only** (`lookup_order`, `check_refund_policy`, and `list_customer_orders` if F8 was built), small `maxSteps` (4). It can't call `issue_refund` (enforce by giving it a registry without write tools, and test it).
 - MUST: when `ChatApprover` posts an approval request, it triggers the Auditor with a handoff message: `{orderId, requestedCents, reason, customerId}` as structured JSON (not free text from the first agent).
 - MUST: the Auditor replies in the thread under its own name with `Recommendation: APPROVE | DENY | UNSURE` plus a reason ≤ 3 sentences. The recommendation is parsed with zod; if it's malformed after 1 repair try, post `UNSURE`.
 - MUST: **the Auditor never decides.** Only a human click resolves the approval. The recommendation is advice (GP-09).

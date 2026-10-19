@@ -10,7 +10,6 @@ Append-only: the newest entry goes at the **top** of "Entries". The coding agent
 ## Open issues
 _(bugs found but not yet fixed, spec questions for the user)_
 - An empty model reply (`content: []`) ends the run with `final_answer` and `finalText: ""`, and the empty assistant message stays in `messages`. Real APIs reject empty assistant messages on the next call, so a multi-turn chat (F6) would fail on the following turn. Decide in F6: drop empty assistant messages, or treat an empty reply as `model_error`.
-- Spec question: the loop is exported as `runAgentLoop`, but FEATURES.md (F4, F15) and ARCHITECTURE.md (4 places) say `runAgent`. Rename the function or update the docs (GP-20).
 
 ## Cleanup backlog
 _(leftovers from time-boxed cleanup passes)_
@@ -53,7 +52,7 @@ _(leftovers from time-boxed cleanup passes)_
 - Unknown tool name: error result listing the real tools, no crash.
 - `maxSteps: 0`: `max_steps` with 0 steps and the input unchanged.
 - Empty model reply: ends as `final_answer` with empty text and an empty assistant message → filed in Open issues (matters for F6 multi-turn chat).
-**Decisions / deviations from spec:** the function is named `runAgentLoop`, not `runAgent` (open question above). Tools in one turn run sequentially, not in parallel; the spec only requires all to be executed and answered. `max_tokens` replies with text only are treated as `final_answer`. `prompt.ts` reads the window from `REFUND_WINDOW_DAYS` so the prompt can't drift from the policy.
+**Decisions / deviations from spec:** the function is named `runAgentLoop`; FEATURES.md and ARCHITECTURE.md were updated to match. Tools in one turn run sequentially, not in parallel; the spec only requires all to be executed and answered. `max_tokens` replies with text only are treated as `final_answer`. `prompt.ts` reads the window from `REFUND_WINDOW_DAYS` so the prompt can't drift from the policy.
 **Next:** F5 tracer and trace summarizer, then the cleanup pass (due after F5).
 
 ### 2026-10-18: F3 follow-up: Gemini adapter and live tests  (see commit)

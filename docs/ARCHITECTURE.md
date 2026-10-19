@@ -44,7 +44,7 @@ harness-training/
 │   │   ├── anthropic.ts       #   Real adapter for Claude (thin)
 │   │   └── gemini.ts          #   Real adapter for Gemini (thin)
 │   ├── agent/                 # LAYER 2
-│   │   ├── loop.ts            #   runAgent(): the ReAct loop, stop conditions, step budget
+│   │   ├── loop.ts            #   runAgentLoop(): the ReAct loop, stop conditions, step budget
 │   │   ├── types.ts           #   AgentConfig, AgentResult, StopReason
 │   │   └── prompt.ts          #   System prompt builder
 │   ├── context/               # LAYER 3
@@ -67,7 +67,7 @@ harness-training/
 │   │   ├── types.ts           #   ChatTransport, IncomingMessage, ActionEvent, OutgoingMessage
 │   │   ├── fakeSlack.ts       #   In-memory channel/threads for tests and offline demos
 │   │   ├── session.ts         #   ThreadSessions: threadRef → {customerId, messages}
-│   │   ├── bot.ts             #   startRefundBot(): mentions → runAgent, per-thread queue
+│   │   ├── bot.ts             #   startRefundBot(): mentions → runAgentLoop, per-thread queue
 │   │   ├── approval.ts        #   ChatApprover: ApprovalHandler via buttons, allowlist, timeout
 │   │   └── auditor.ts         #   Auditor agent config + structured handoff (F15)
 │   └── slack/                 # WEEK 2 (F14): the only code that knows Slack exists
@@ -120,7 +120,7 @@ Arrows point at "may import". Anything not drawn is forbidden. This keeps every 
 ## Data flow for one customer message
 
 ```
-CLI ── user text ──► runAgent(config, messages)
+CLI ── user text ──► runAgentLoop(config, messages)
                         │
                         ▼
               ┌──► context.prepare(messages)        (L3: trim / truncate / budget)
@@ -147,7 +147,7 @@ CLI ── user text ──► runAgent(config, messages)
 Slack ─(Socket Mode)─► BoltTransport ──► bot.ts ──► ThreadSessions.get(thread)
                                             │
                                             ▼
-                                  runAgent(… approval: ChatApprover(thread, rep))
+                                  runAgentLoop(… approval: ChatApprover(thread, rep))
                                             │ needs_approval
                                             ▼
                      ChatApprover posts [Approve][Deny] ──► Auditor agent posts recommendation
