@@ -1,5 +1,5 @@
 import { DomainError, type Order } from "../domain/types.js";
-import type { ToolContext } from "./types.ts";
+import type { ToolContext } from "./types.js";
 
 /**
  * Fetches an order the current customer owns. A missing order and someone

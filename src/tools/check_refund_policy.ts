@@ -1,7 +1,7 @@
-import {z} from "zod";
-import type { Tool } from "./types.ts";
+import { z } from "zod";
+import type { Tool } from "./types.js";
 import { evaluateRefund, type RefundEvaluation } from "../domain/policy.js";
-import {getOwnedOrder} from "./order_access.js";
+import { getOwnedOrder } from "./order_access.js";
 
 const checkRefundPolicyInput = z.object({
     orderId: z

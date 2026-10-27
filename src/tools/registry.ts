@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { DomainError } from "../domain/types.js";
-import type { Tool, ToolContext, ToolResult, ToolSchema } from "./types.ts";
+import type { Tool, ToolContext, ToolResult, ToolSchema } from "./types.js";
 import { noopTracer } from "../telemetry/tracer.js";
 
 

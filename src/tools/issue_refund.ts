@@ -1,5 +1,5 @@
-import {z}  from "zod";
-import type { Tool } from "./types.ts";
+import { z } from "zod";
+import type { Tool } from "./types.js";
 import { evaluateRefund } from "../domain/policy.js";
 import { DomainError, type Refund } from "../domain/types.js";
 import { getOwnedOrder } from "./order_access.js";

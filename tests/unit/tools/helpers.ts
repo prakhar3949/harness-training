@@ -4,7 +4,7 @@ import { lookupOrder } from "../../../src/tools/lookup_order.js";
 import { checkRefundPolicy } from "../../../src/tools/check_refund_policy.js";
 import { issueRefund } from "../../../src/tools/issue_refund.js";
 import { escalateToHuman } from "../../../src/tools/escalate_to_human.js";
-import type { ToolContext } from "../../../src/tools/types.ts";
+import type { ToolContext } from "../../../src/tools/types.js";
 
 /** A registry with all four Refund Desk tools, as unit and integration tests use it. */
 export function makeRegistry(): ToolRegistry {

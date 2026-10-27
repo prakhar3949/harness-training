@@ -1,5 +1,5 @@
-import {z} from "zod";
-import type { Tool } from "./types.ts";
+import { z } from "zod";
+import type { Tool } from "./types.js";
 
 const escalateInput = z.object({
   summary: z.string().min(10).describe("What the customer needs, in one or two sentences"),
