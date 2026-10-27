@@ -1,7 +1,7 @@
 import type { Order } from "./types.js";
 
 export const REFUND_WINDOW_DAYS = 30;
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
+export const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export type RefundReason =
   | "NOT_DELIVERED"

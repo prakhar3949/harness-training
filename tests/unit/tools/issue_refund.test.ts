@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { issueRefund } from "../../../src/tools/issue_refund.js";
+import { MS_PER_DAY } from "../../../src/domain/policy.js";
 import { SEED_NOW } from "../../../src/domain/store.js";
 import { makeCtx } from "./helpers.js";
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 describe("issue_refund", () => {
     it("is a write tool", () => {

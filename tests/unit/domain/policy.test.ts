@@ -6,11 +6,10 @@
  * then checking the result. No store and no real clock are needed.
  */
 import { describe, it, expect } from "vitest";
-import { evaluateRefund, REFUND_WINDOW_DAYS, type RefundReason } from "../../../src/domain/policy.js";
+import { evaluateRefund, MS_PER_DAY, REFUND_WINDOW_DAYS, type RefundReason } from "../../../src/domain/policy.js";
 import { seedOrders, SEED_NOW } from "../../../src/domain/store.js";
 import type { Order } from "../../../src/domain/types.js";
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 /**
  * Look up one seed order by id.

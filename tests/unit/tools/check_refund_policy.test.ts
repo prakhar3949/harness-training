@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { checkRefundPolicy } from "../../../src/tools/check_refund_policy.js";
+import { MS_PER_DAY } from "../../../src/domain/policy.js";
 import { SEED_NOW } from "../../../src/domain/store.js";
 import { makeCtx } from "./helpers.js";
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 describe("check_refund_policy", () => {
     it("is a read tool", () => {

@@ -1,3 +1,4 @@
+import { MS_PER_DAY } from "./policy.js";
 import { DomainError, type Order, type Refund, type Ticket } from "./types.js";
 
 export interface OrderStore {
@@ -77,7 +78,6 @@ export class InMemoryOrderStore implements OrderStore {
 export const SEED_NOW = new Date("2026-09-30T12:00:00.000Z");
 export const SEED_CUSTOMER_ID = "cust_1";
 
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const daysAgo = (now: Date, n: number) => new Date(now.getTime() - n * MS_PER_DAY).toISOString();
 
 export function seedOrders(now: Date = SEED_NOW): Order[] {
