@@ -3,8 +3,8 @@
 Append-only: the newest entry goes at the **top** of "Entries". The coding agent writes one entry per finished feature and one per cleanup pass.
 
 ## Status
-- Current feature: **F6** (not started); cleanup pass is due first
-- Last cleanup: 2026-10-06 (after F2; next due after F5)
+- Current feature: **F6** (not started)
+- Last cleanup: 2026-10-27 (after F5; next due after F8)
 - Eval pass rate: n/a
 
 ## Open issues
@@ -14,7 +14,7 @@ _(bugs found but not yet fixed, spec questions for the user)_
 _(leftovers from time-boxed cleanup passes)_
 - Import style is mixed: tools import siblings with `.ts` and `.js` extensions, and `{z}` vs `{ z }`. Pick one; a lint rule could enforce it (F11).
 - `MS_PER_DAY` is defined in `policy.ts`, `store.ts` and two test files. Not yet three copies in `src/`, so no shared helper (GP-04); revisit if a third appears.
-- `src/agent/loop.ts`: mixed 2/4-space indentation. A formatter would settle it (F11).
+- Mixed 2/4-space indentation in `src/agent/loop.ts` and `src/llm/anthropic.ts`. A formatter would settle it (F11).
 
 ---
 
@@ -37,6 +37,22 @@ _(leftovers from time-boxed cleanup passes)_
 ---
 
 ## Entries
+
+### 2026-10-27: Cleanup after F3–F5  (f219b21..20a66d6)
+**Baseline:** `npm run verify` green, 148 unit + integration, 1 e2e; eval still a stub (output identical before and after).
+**Mechanical scan** (grep fallback, F11 checker not built): no `any`, `.only`/`.skip`, orphan TODOs, `console.*` in `src`, or real-clock calls (the `new Date(...)` hits all derive from injected or seed time); each provider SDK is imported only by its adapter; no keys in the repo; no file over 200 lines (largest `store.ts`, 167).
+**Violations found → fixed:**
+- GP-05 (1): `(err as DomainError)` cast in `store.test.ts` → `instanceof` type guard. (f219b21)
+- GP-16 (2): `DEFAULT_MODEL` and `DEFAULT_GEMINI_MODEL` exported but only used in their own files → no longer exported. (ded24ea)
+- GP-19 (1): malformed `**/` doc comment on `JsonlTracer` that also left out the `latest.jsonl` copy → fixed. (f67e488)
+- GP-20 (1): FEATURES.md F3 named the `ModelError` kinds `server`/`bad_request`; the code uses `server_error`/`invalid_request` → doc updated. (2ac70ba)
+- GP-13 (1): `buildSystemPrompt` had no test for the rules F4 requires → 3 tests added, no code changed. (2214ad5)
+- Duplication (3 copies): the four-tool registry was built by hand in `registry.test`, `loop.test` and `trace.test` → one `makeRegistry()` next to `makeCtx` in `tests/unit/tools/helpers.ts`. (20a66d6)
+**Checked, no violation:** GP-03 (`telemetry/`, `tests/live/`, `scripts/trace.ts` are in ARCHITECTURE.md), GP-06 (zod only at edges: tool input, trace files), GP-08 (`ToolResult`, trace events and `model_call`/`tool_call` are unions on `ok`), GP-09 (refund rules enforced in tools, not only in the prompt), GP-10 (adapters turn provider failures into `ModelError`; the only `throw` left in an adapter is a programmer-bug check), GP-11 (every model and tool call is traced). Exported types used only inside another export's signature (`StopReason`, `TracerOptions`, `ToolRisk`, `OrderItem`, `OrderStatus`, `ModelErrorKind`) are kept: callers need them to type those values.
+**Metrics:** source LOC 1172 (`src/`, was 505 after F2); tests 151 unit + integration, 1 e2e, plus 4 opt-in live; eval n/a. Violations: 9 found, 9 fixed.
+**Rule improvements:** GP-20 showed up twice since the last pass (`runAgent` vs `runAgentLoop`, then the error kinds), both names in backticks in the docs that no longer exist in `src/`. Proposal for the F11 checker: flag backticked identifiers in FEATURES.md/ARCHITECTURE.md that look like code names (`camelCase(`, `"snake_case"` kinds) and don't appear anywhere in `src/`. GP-19 (stale or wrong comments) also repeated (the "thinking boxes" wording, the wrong `latest.jsonl` reason, the malformed comment), but it needs judgment, so it stays `[review]`.
+**Backlog:** unchanged (import style, `MS_PER_DAY`, mixed indentation; a formatter in F11 would settle the last one, which now also covers `anthropic.ts`). `scripts/trace.ts` has no automated test yet; F6's e2e tests are the natural place.
+**Next:** F6 CLI.
 
 ### 2026-10-27: F5 Tracer and trace summarizer  (see commit)
 **Summary:** Every run can now be recorded. The loop emits `run_start`, `model_call`, `model_response` and `run_end`; the registry emits `tool_call` for every tool execution, failures included. `MemoryTracer` keeps events for tests, `JsonlTracer` writes one redacted JSON line per event and copies the file to `latest.jsonl` on `run_end`, and `noopTracer` is the default. `npm run trace -- <file>` prints totals and a timeline.
