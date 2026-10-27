@@ -38,7 +38,7 @@ export type DomainErrorCode =
   | "ORDER_NOT_DELIVERED"
   | "OVER_REFUND"
   |"REFUND_NOT_ELIGIBLE";
- 
+
 export class DomainError extends Error {
   constructor(
     public readonly code: DomainErrorCode,

@@ -35,7 +35,7 @@ export class InMemoryOrderStore implements OrderStore {
   listRefunds(): Refund[] {
     return this.refunds.map((r) => ({ ...r }));
   }
-  
+
   recordRefund(orderId: string, cents: number, reason: string): Refund {
     const order = this.orders.get(orderId);
     if (!order) {
@@ -63,12 +63,12 @@ export class InMemoryOrderStore implements OrderStore {
     return { ...refund };
   }
 
-  createTicket(customerId: string, summary: string, urgency: Ticket["urgency"], createdAt: string,): Ticket{ 
+  createTicket(customerId: string, summary: string, urgency: Ticket["urgency"], createdAt: string,): Ticket{
   const ticket: Ticket = { id: `tkt_${this.nextTicketSeq++}`, customerId, summary, urgency, createdAt };
   this.tickets.push(ticket);
   return { ...ticket };
   }
-  
+
 }
 
 // ---------------------------------------------------------------------------

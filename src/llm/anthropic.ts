@@ -28,8 +28,8 @@ function toSdkBlock(block: ContentBlock): Anthropic.ContentBlockParam {
     case "text":
       return { type: "text", text: block.text };
     case "thinking":
-      return { type: "thinking", thinking: block.thinking, signature: block.signature };  
-      case "tool_use":
+      return { type: "thinking", thinking: block.thinking, signature: block.signature };
+    case "tool_use":
       return { type: "tool_use", id: block.id, name: block.name, input: block.input };
     case "tool_result":
       return {

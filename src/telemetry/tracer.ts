@@ -47,7 +47,7 @@ export function serializeEvent(event: TraceEvent): string {
 }
 
 /** Appends each event as it happens, so a crash still leaves a trace. On run_end, copies the file to latest.jsonl. */
-export class JsonlTracer implements Tracer { 
+export class JsonlTracer implements Tracer {
     private readonly path: string;
     private readonly stamp:(event: TraceEventInput) => TraceEvent;
 

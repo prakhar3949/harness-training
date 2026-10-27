@@ -1,6 +1,6 @@
 import type { ToolSchema } from "../tools/types.js";
 
-export type ContentBlock = 
+export type ContentBlock =
     | { type: "text"; text: string }
     | { type: "thinking"; thinking: string; signature: string }
     | { type: "tool_use"; id: string; name: string; input: unknown }

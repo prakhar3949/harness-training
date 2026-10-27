@@ -65,7 +65,7 @@ describe("summarize", () => {
     tracer.emit({ type: "run_start", customerId: "cust_1", maxSteps: 5, tools: [] });
     expect(summarize(tracer.events)).toContain("no run_end");
   });
-  
+
   it("keeps each event on one line, even when an error spans several", () => {
     const tracer = new MemoryTracer(options);
     tracer.emit({ type: "tool_call", name: "issue_refund", input: {}, latencyMs: 0, ok: false, error: "Invalid input:\n✖ expected number" });
