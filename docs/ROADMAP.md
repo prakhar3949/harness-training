@@ -21,7 +21,7 @@ Goal: an agent that completes a refund end-to-end against a scripted model.
 
 ## Day 3 – Observability (Layer 6) + CLI
 Goal: see everything the agent did. Do this *before* guardrails/context so you can debug them.
-- [ ] **F5** Tracer + trace summarizer
+- [x] **F5** Tracer + trace summarizer
 - [ ] **F6** CLI (`npm run chat`, `--scripted` offline mode)
 
 ✅ End of day: run the CLI, then `npm run trace -- traces/latest.jsonl` prints a timeline.

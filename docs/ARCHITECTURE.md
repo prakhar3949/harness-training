@@ -88,6 +88,7 @@ harness-training/
 ├── slack/manifest.yaml        # Slack app manifest (F14)
 ├── scripts/
 │   ├── check-principles.ts    # Mechanical enforcement of GOLDEN_PRINCIPLES (F9)
+│   ├── trace.ts               # `npm run trace -- <file>`: parse a JSONL trace and print its summary (F5)
 │   └── verify.sh              # One command: typecheck + lint + test + eval + smoke
 └── traces/                    # *.jsonl written by the tracer; the whole folder is gitignored by the
                                #   root .gitignore (no .gitignore inside it). Created at runtime.
@@ -102,7 +103,7 @@ cli ──► agent ──► tools ──► domain
           │  ╲──► guardrails
           │  ╲──► context
           │  ╲──► telemetry
-          └────► llm (interface only)
+          └────► llm (ModelClient interface and ModelError only)
 
 slack ──► chat ──► agent, guardrails (ApprovalHandler), telemetry
 
@@ -111,7 +112,8 @@ llm/gemini.ts     ← only file allowed to import "@google/genai"
 slack/boltTransport.ts ← only file allowed to import "@slack/bolt"
 chat/             ← never imports slack/ (it talks to ChatTransport only)
 domain/           ← imports nothing from the rest of src/
-tools/            ← never imports agent/, llm/, cli/
+tools/            ← never imports agent/, llm/, cli/; may import telemetry/ (Tracer, noopTracer) to trace tool calls
+agent/prompt.ts   ← reads REFUND_WINDOW_DAYS from domain/, so the prompt cannot drift from the policy
 telemetry/        ← imports nothing from the rest of src/ (except its own types)
 ```
 

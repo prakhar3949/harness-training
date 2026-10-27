@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { z } from "zod";
 import { ToolRegistry } from "../../../src/tools/registry.js";
 import type { Tool } from "../../../src/tools/types.js";
@@ -7,6 +7,9 @@ import { checkRefundPolicy } from "../../../src/tools/check_refund_policy.js";
 import { issueRefund } from "../../../src/tools/issue_refund.js";
 import { escalateToHuman } from "../../../src/tools/escalate_to_human.js";
 import { makeCtx } from "./helpers.js";
+import { MemoryTracer } from "../../../src/telemetry/tracer.js";
+import { SEED_NOW } from "../../../src/domain/store.js";
+
 
 const makeRegistry = () =>
     new ToolRegistry()
@@ -97,18 +100,21 @@ describe("ToolRegistry – execute", () => {
         expect(result).toEqual({ ok: false, error: expect.stringContaining("not found") });
     });
 
-    it("hides unexpected errors from the model but still logs them", async () => {
-        const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    it("hides unexpected errors from the model but records them in the trace", async () => {
+        const tracer = new MemoryTracer({ runId: "t", now: () => SEED_NOW });
         const registry = new ToolRegistry().register(brokenTool);
 
-        const result = await registry.execute("broken", {}, makeCtx());
+        const result = await registry.execute("broken", {}, makeCtx({ tracer }));
 
         expect(result.ok).toBe(false);
         if (!result.ok) {
             expect(result.error).not.toContain("hunter2");
             expect(result.error).toContain("failed unexpectedly");
         }
-        expect(log).toHaveBeenCalledOnce();
-        log.mockRestore();
+        const [event] = tracer.events;
+        expect(event).toMatchObject({ type: "tool_call", name: "broken", ok: false });
+        expect(event?.type === "tool_call" && !event.ok ? event.detail : "").toContain("hunter2");
     });
 });
+
+

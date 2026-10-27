@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { DomainError } from "../domain/types.js";
 import type { Tool, ToolContext, ToolResult, ToolSchema } from "./types.ts";
+import { noopTracer } from "../telemetry/tracer.js";
+
 
 type AnyTool = Tool<unknown, unknown>;
 
@@ -33,27 +35,41 @@ export class ToolRegistry {
     }
 
     /** Never throws: every failure becomes { ok: false, error } so the model can read it and recover. */
+        /** Never throws: every failure becomes { ok: false, error } so the model can read it and recover. Every call is traced. */
     async execute(name: string, rawInput: unknown, ctx: ToolContext): Promise<ToolResult<unknown>> {
+        const tracer = ctx.tracer ?? noopTracer;
+        const started = ctx.now().getTime();
+        const report = (result: ToolResult<unknown>, detail?: string): ToolResult<unknown> => {
+            const latencyMs = ctx.now().getTime() - started;
+            if (result.ok) tracer.emit({ type: "tool_call", name, input: rawInput, latencyMs, ok: true, output: result.data });
+            else tracer.emit({ type: "tool_call", name, input: rawInput, latencyMs, ok: false, error: result.error, detail });
+            return result;
+        };
+
         const tool = this.tools.get(name);
         if (!tool) {
-            return { ok: false, error: `Unknown tool "${name}". Available tools: ${[...this.tools.keys()].join(", ")}` };
+            return report({ ok: false, error: `Unknown tool "${name}". Available tools: ${[...this.tools.keys()].join(", ")}` });
         }
 
         const parsed = tool.inputSchema.safeParse(rawInput);
         if (!parsed.success) {
-            return { ok: false, error: `Invalid input for ${name}:\n${z.prettifyError(parsed.error)}` };
+            return report({ ok: false, error: `Invalid input for ${name}:\n${z.prettifyError(parsed.error)}` });
         }
 
+        // Tracing happens outside the try: if writing the trace failed, a refund that did happen must not be reported as failed.
+        let result: ToolResult<unknown>;
+        let detail: string | undefined;
         try {
-            return { ok: true, data: await tool.execute(parsed.data, ctx) };
+            result = { ok: true, data: await tool.execute(parsed.data, ctx) };
         } catch (err) {
             if (err instanceof DomainError) {
-                return { ok: false, error: err.message };
+                result = { ok: false, error: err.message };
+            } else {
+                // Unexpected bug: the details go to the trace for us; the model gets a generic message.
+                detail = err instanceof Error ? (err.stack ?? err.message) : String(err);
+                result = { ok: false, error: `Tool ${name} failed unexpectedly. Do not retry; escalate to a human.` };
             }
-            // Unexpected bug: log the details for us, give the model a generic message.
-            // TODO(F5): report through the tracer instead of console (GP-18).
-            console.error(`[tool ${name}] unexpected error`, err);
-            return { ok: false, error: `Tool ${name} failed unexpectedly. Do not retry; escalate to a human.` };
         }
+        return report(result, detail);
     }
 }

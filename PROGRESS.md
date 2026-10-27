@@ -3,7 +3,7 @@
 Append-only: the newest entry goes at the **top** of "Entries". The coding agent writes one entry per finished feature and one per cleanup pass.
 
 ## Status
-- Current feature: **F5** (not started)
+- Current feature: **F6** (not started); cleanup pass is due first
 - Last cleanup: 2026-10-06 (after F2; next due after F5)
 - Eval pass rate: n/a
 
@@ -12,7 +12,6 @@ _(bugs found but not yet fixed, spec questions for the user)_
 
 ## Cleanup backlog
 _(leftovers from time-boxed cleanup passes)_
-- GP-18: `ToolRegistry.execute` logs unexpected errors with `console.error` (marked `TODO(F5)`); replace with a tracer event in F5.
 - Import style is mixed: tools import siblings with `.ts` and `.js` extensions, and `{z}` vs `{ z }`. Pick one; a lint rule could enforce it (F11).
 - `MS_PER_DAY` is defined in `policy.ts`, `store.ts` and two test files. Not yet three copies in `src/`, so no shared helper (GP-04); revisit if a third appears.
 - `src/agent/loop.ts`: mixed 2/4-space indentation. A formatter would settle it (F11).
@@ -38,6 +37,20 @@ _(leftovers from time-boxed cleanup passes)_
 ---
 
 ## Entries
+
+### 2026-10-27: F5 Tracer and trace summarizer  (see commit)
+**Summary:** Every run can now be recorded. The loop emits `run_start`, `model_call`, `model_response` and `run_end`; the registry emits `tool_call` for every tool execution, failures included. `MemoryTracer` keeps events for tests, `JsonlTracer` writes one redacted JSON line per event and copies the file to `latest.jsonl` on `run_end`, and `noopTracer` is the default. `npm run trace -- <file>` prints totals and a timeline.
+**Files:** added `src/telemetry/{types,tracer,summarize}.ts`, `scripts/trace.ts`, `tests/unit/telemetry/tracer.test.ts`, `tests/integration/agent/trace.test.ts`. Changed `src/agent/loop.ts` (tracing; split into `runAgentLoop`, `loop`, `callModel`), `src/tools/registry.ts` (traces each call; `console.error` replaced by a `detail` field), `src/tools/types.ts` (real `Tracer`), `tests/unit/tools/registry.test.ts`, `package.json` (`trace` script), `docs/ARCHITECTURE.md`.
+**Concepts learned:** a trace is the agent's flight recorder: what the model and tools actually did, not what the model claimed; emitting means handing a structured event to whatever tracer is plugged in; the tracer stamps `runId`, `seq` and `ts`, so emitters can't get them wrong; a null object (`noopTracer`) removes `if (tracer)` checks everywhere; one zod schema gives both the TypeScript type and the check for trace files read back from disk (validate at the boundary, GP-06); `DistributiveOmit` (`T extends unknown ? Omit<T, K> : never`) removes fields per union member, where plain `Omit` would merge the members; dates are stored as ISO strings because JSON has no date type; `JSON.stringify` with a replacer redacts secrets by field name and by shape (GP-12); `?.`, `??` (not `||`, which also replaces 0) and the ternary handle missing values; tracing sits outside the tool's `try`, so a tracer failure can't make a real refund look failed.
+**Tests:** 148 unit + integration (10 new: tracer/summarize unit 6, trace integration 4; the registry console spy test was rewritten to read the trace), 1 e2e, eval stub; `npm run verify` exits 0.
+**Human-tester pass:**
+- Wrote a real trace to `traces/` from a scripted refund with a clock advancing 7 ms per reading, and ran `npm run trace -- traces/latest.jsonl`: events in order, `seq` 0–12, totals right (4 steps, 3 tool calls, 1 failed, 3742/123 tokens, 189 ms).
+- Planted an `apiKey` field and an `sk-ant-…` string in tool inputs: neither appears in the file.
+- `npm run trace` with a missing file prints one clear line and exits 1.
+- Bug: a multi-line zod error broke the timeline onto two lines → `shorten` now collapses whitespace; regression test added.
+- Bug during the build: `JsonlTracer` copied to `last.jsonl`, not `latest.jsonl`; the round-trip test caught it.
+**Decisions / deviations from spec:** `JsonlTracer` appends each event as it happens (no buffer), so a crashed run still leaves a trace; "flush on run_end" is the `latest.jsonl` copy, made with a copy, not a symlink (symlinks need admin rights on Windows). The event schema is written once in zod and the type inferred from it. Redaction also covers Gemini-style keys (`AIza…`). `tools/` now imports `telemetry/` (ARCHITECTURE.md updated). Unexpected tool errors keep their stack in a `detail` field that only the trace sees.
+**Next:** the cleanup pass (due after F5), then F6 CLI, which will create a `JsonlTracer` per real run.
 
 ### 2026-10-19: F4 Agent loop  (see commit)
 **Summary:** `runAgentLoop` runs the ReAct loop: call the model, run every requested tool through the registry, append one assistant message and one user message of matching `tool_result`s, and repeat until the model answers in text (`final_answer`), the step budget runs out (`max_steps`), or the model fails (`model_error`). `buildSystemPrompt()` gives the model its role, the policy and the working rules.

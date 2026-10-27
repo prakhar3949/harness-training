@@ -10,7 +10,7 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts",
     "eval": "echo \"eval: not implemented\" && exit 0",
     "chat": "echo \"chat: not implemented\" && exit 0",
-    "trace": "echo \"trace: not implemented\" && exit 0",
+    "trace": "tsx scripts/trace.ts",
     "verify": "bash scripts/verify.sh",
     "test:live": "node --env-file-if-exists=.env ./node_modules/vitest/vitest.mjs run --config vitest.live.config.ts"
   },

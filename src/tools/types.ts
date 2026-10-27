@@ -1,11 +1,7 @@
 import { z } from "zod";
 import type { OrderStore } from "../domain/store.js";
+import type { Tracer } from "../telemetry/tracer.js";
 export type ToolRisk = "read" | "write";
-
-/** Receives trace events. Full event types and implementations come in F5. */
-export interface Tracer {
-  emit(event: { type: string; [key: string]: unknown }): void;
-}
 
 export interface Tool<I, O> {
   name: string;
