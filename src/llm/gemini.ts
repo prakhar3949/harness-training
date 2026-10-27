@@ -19,7 +19,7 @@ import {
   type ModelResponse,
 } from "./types.js";
 
-export const DEFAULT_GEMINI_MODEL = "gemini-3.8-flash";
+const DEFAULT_GEMINI_MODEL = "gemini-3.8-flash";
 
 /** The slice of the SDK we use. Tests pass a fake with this shape; the real client satisfies it. */
 export interface GeminiSdkClient {

@@ -9,7 +9,7 @@ import {
   type ModelResponse,
 } from "./types.js";
 
-export const DEFAULT_MODEL = "claude-opus-5-5";
+const DEFAULT_MODEL = "claude-opus-5-5";
 const MAX_TOKENS = 16000;
 
 /** The slice of the SDK we use. Tests pass a fake with this shape; the real client satisfies it. */
