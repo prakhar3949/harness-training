@@ -79,7 +79,7 @@ Paths refer to [`ARCHITECTURE.md`](ARCHITECTURE.md). Test strategy is in [`TESTI
 - MUST: `ScriptedModel(responses: ModelResponse[] | ((req) => ModelResponse))` – returns the next response; throws a clear error if the script runs out; records every request it received (`model.requests`) so tests can assert what the agent sent.
 - MUST: helpers `textResponse("…")`, `toolCallResponse(name, input)` for readable scripts.
 - MUST: `llm/anthropic.ts` implementing `ModelClient` using `@anthropic-ai/sdk`: maps our types ⇄ SDK types, reads `ANTHROPIC_API_KEY`, model id from config (default from the `claude-api` skill's current model list; do not hardcode from memory).
-- MUST: adapter maps provider errors into a typed `ModelError { kind: "rate_limit"|"auth"|"server"|"bad_request" }`.
+- MUST: adapter maps provider errors into a typed `ModelError { kind: "rate_limit"|"auth"|"server_error"|"invalid_request" }`.
 - SHOULD: adapter has an injectable SDK client so its mapping logic is unit-tested with a fake.
 
 **Acceptance**
