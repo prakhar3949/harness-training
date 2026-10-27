@@ -9,11 +9,7 @@ import { ScriptedModel, textResponse, toolCallResponse } from "../../../src/llm/
 import { ModelError } from "../../../src/llm/types.js";
 import { parseTrace, summarize } from "../../../src/telemetry/summarize.js";
 import { JsonlTracer, MemoryTracer, type Tracer } from "../../../src/telemetry/tracer.js";
-import { ToolRegistry } from "../../../src/tools/registry.js";
-import { lookupOrder } from "../../../src/tools/lookup_order.js";
-import { checkRefundPolicy } from "../../../src/tools/check_refund_policy.js";
-import { issueRefund } from "../../../src/tools/issue_refund.js";
-import { escalateToHuman } from "../../../src/tools/escalate_to_human.js";
+import { makeRegistry } from "../../unit/tools/helpers.js";
 
 const options = { runId: "run_test", now: () => SEED_NOW };
 
@@ -25,10 +21,9 @@ const refundSmallOrder = () => [
 ];
 
 function runTraced(tracer: Tracer, script: ConstructorParameters<typeof ScriptedModel>[0] = refundSmallOrder()) {
-  const registry = new ToolRegistry().register(lookupOrder).register(checkRefundPolicy).register(issueRefund).register(escalateToHuman);
   return runAgentLoop({
     model: new ScriptedModel(script),
-    registry,
+    registry: makeRegistry(),
     systemPrompt: buildSystemPrompt(),
     messages: [{ role: "user", content: [{ type: "text", text: "Please refund ord_small" }] }],
     maxSteps: 10,

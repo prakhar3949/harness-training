@@ -4,22 +4,14 @@ import { buildSystemPrompt } from "../../../src/agent/prompt.js";
 import { InMemoryOrderStore, seedOrders, SEED_CUSTOMER_ID, SEED_NOW } from "../../../src/domain/store.js";
 import { ScriptedModel, textResponse, toolCallResponse } from "../../../src/llm/scripted.js";
 import { ModelError, type ContentBlock, type Message, type ModelResponse } from "../../../src/llm/types.js";
-import { ToolRegistry } from "../../../src/tools/registry.js";
-import { lookupOrder } from "../../../src/tools/lookup_order.js";
-import { checkRefundPolicy } from "../../../src/tools/check_refund_policy.js";
-import { issueRefund } from "../../../src/tools/issue_refund.js";
-import { escalateToHuman } from "../../../src/tools/escalate_to_human.js";
+import { makeRegistry } from "../../unit/tools/helpers.js";
 
 const userSays = (text: string): Message[] => [{ role: "user", content: [{ type: "text", text }] }];
 
 function setup(script: ConstructorParameters<typeof ScriptedModel>[0], messages = userSays("Please refund ord_small")) {
   const store = new InMemoryOrderStore(seedOrders());
   const model = new ScriptedModel(script);
-  const registry = new ToolRegistry()
-    .register(lookupOrder)
-    .register(checkRefundPolicy)
-    .register(issueRefund)
-    .register(escalateToHuman);
+  const registry = makeRegistry();
   const run = (maxSteps = 10) =>
     runAgentLoop({
       model,

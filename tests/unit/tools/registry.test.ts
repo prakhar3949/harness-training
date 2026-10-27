@@ -3,20 +3,9 @@ import { z } from "zod";
 import { ToolRegistry } from "../../../src/tools/registry.js";
 import type { Tool } from "../../../src/tools/types.js";
 import { lookupOrder } from "../../../src/tools/lookup_order.js";
-import { checkRefundPolicy } from "../../../src/tools/check_refund_policy.js";
-import { issueRefund } from "../../../src/tools/issue_refund.js";
-import { escalateToHuman } from "../../../src/tools/escalate_to_human.js";
-import { makeCtx } from "./helpers.js";
+import { makeCtx, makeRegistry } from "./helpers.js";
 import { MemoryTracer } from "../../../src/telemetry/tracer.js";
 import { SEED_NOW } from "../../../src/domain/store.js";
-
-
-const makeRegistry = () =>
-    new ToolRegistry()
-        .register(lookupOrder)
-        .register(checkRefundPolicy)
-        .register(issueRefund)
-        .register(escalateToHuman);
 
 // A tool that crashes with a non-domain error, carrying a "secret" in its message.
 const emptyInput = z.object({});
