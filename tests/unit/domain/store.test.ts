@@ -23,7 +23,7 @@ function expectDomainError(fn: () => unknown, code: DomainErrorCode) {
     fn();
   } catch (err) {
     expect(err).toBeInstanceOf(DomainError);
-    expect((err as DomainError).code).toBe(code);
+    expect(err instanceof DomainError && err.code).toBe(code);
     return; // threw the right error → pass
   }
   // Reaching this line means fn() didn't throw at all → fail
