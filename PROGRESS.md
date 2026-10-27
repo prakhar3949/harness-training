@@ -12,9 +12,8 @@ _(bugs found but not yet fixed, spec questions for the user)_
 
 ## Cleanup backlog
 _(leftovers from time-boxed cleanup passes)_
-- Import style is mixed: tools import siblings with `.ts` and `.js` extensions, and `{z}` vs `{ z }`. Pick one; a lint rule could enforce it (F11).
-- `MS_PER_DAY` is defined in `policy.ts`, `store.ts` and two test files. Not yet three copies in `src/`, so no shared helper (GP-04); revisit if a third appears.
-- Mixed 2/4-space indentation in `src/agent/loop.ts` and `src/llm/anthropic.ts`. A formatter would settle it (F11).
+- Each file is indented consistently, but some files use 2 spaces and others 4. Pick one repo-wide with a formatter (F11); doing it by hand would touch nearly every file.
+- `scripts/trace.ts` has no automated test yet; F6's e2e tests are the natural place.
 
 ---
 
@@ -37,6 +36,13 @@ _(leftovers from time-boxed cleanup passes)_
 ---
 
 ## Entries
+
+### 2026-10-27: Cleanup backlog cleared  (84a7484..e9b8b38)
+**Fixed (no behavior changes; `npm run verify` green after each, 151 unit + integration, 1 e2e):**
+- Import style: 7 relative imports ended in `.ts`, now `.js` like the rest; `{z}` and `{getOwnedOrder}` now `{ z }` and `{ getOwnedOrder }`. (84a7484)
+- `MS_PER_DAY`: was copied in `policy.ts`, `store.ts` and three test files; now exported once from `domain/policy.ts`, which already owns the refund window and imports only types, so there's no import cycle. (d658934)
+- Indentation: `loop.ts` was already consistent after the F5 rewrite; fixed one misindented `case` in `anthropic.ts` and trailing whitespace in six files. (e9b8b38)
+**Left in the backlog:** files are each consistent, but the repo mixes 2-space and 4-space files; a formatter in F11 should settle that in one sweep.
 
 ### 2026-10-27: Cleanup after F3–F5  (f219b21..20a66d6)
 **Baseline:** `npm run verify` green, 148 unit + integration, 1 e2e; eval still a stub (output identical before and after).
